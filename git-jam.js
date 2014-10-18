@@ -24,7 +24,7 @@ function main(args){
 		case 'pull':
 			return jamPull();
 		case 'filter':
-			return addFilter(remainingArgs);
+			return addFilters(remainingArgs);
 		default : 
 			console.log('Usage : git-jam [init|push|pull]');
 	}
@@ -44,6 +44,35 @@ function jamPush(){
 
 function jamPull(){
 	
+}
+
+function addFilters(args){
+	args.forEach(function(filter){
+		addFilter(filter);
+	});
+}
+
+function addFilter(filter){
+	gitUtils.getJamPath()
+	.then(function(jamPath){
+		var attributesPath = path.resolve(jamPath,'../../.gitattributes');
+		if(!fs.existsSync(attributesPath)){
+			fs.writeFileSync(attributesPath,'');
+		}
+		var attributes = fs.readFileSync(attributesPath,'utf8');
+		var expression = filter + ' filter=';
+		var foundAt = attributes.indexOf(filter + ' filter=');
+		if(foundAt >= 0){
+			var line = attributes.slice(foundAt);
+			var endOfLine = line.indexOf('\n') == - 1 ? line.length : line.indexOf('\n');
+			line = line.slice(0,endOfLine);
+			attributes = attributes.replace(line,filter + ' filter=jam -crlf');
+		}
+		else{
+			attributes += (attributes[attributes.length] == '\n' || attributes.length == 0 ? '' : '\n') + filter + ' filter=jam -crlf';
+		}
+		fs.writeFileSync(attributesPath,attributes);
+	});
 }
 
 function jamInit(){
