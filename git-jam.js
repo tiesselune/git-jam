@@ -1,14 +1,17 @@
-#!/usr/bin/node
+#!/bin/node
+
+'use strict';
 
 var When = require('when');
-var childProcess = require('child_process');
 var fs = require('fs');
 var path = require('path');
+var gitUtils = require('./modules/gitUtils.js');
 
 function main(args){
-	if(args.length == 0){
+	if(args.length === 0){
 		console.log('Usage : git-jam [init|push|pull]');
 	}
+	var remainingArgs = args.slice(1);
 	switch(args[0]){
 		case 'filter-smudge':
 			return jamFilterSmudge();
@@ -18,6 +21,10 @@ function main(args){
 			return jamInit();
 		case 'push':
 			return jamPush();
+		case 'pull':
+			return jamPull();
+		case 'filter':
+			return addFilter(remainingArgs);
 		default : 
 			console.log('Usage : git-jam [init|push|pull]');
 	}
@@ -35,39 +42,34 @@ function jamPush(){
 	
 }
 
-function jamInit(dirName){
-	var name = dirName || 'jam';
+function jamPull(){
+	
+}
+
+function jamInit(){
+	var name = 'jam';
 	//Make git config entries
-	return command('git config filter.jam.clean "git-jam filter-clean"')
+	return gitUtils.config('filter.jam.clean','git-jam filter-clean')
 	.then(function(){
-		return command('git config filter.jam.smudge "git-jam filter-smudge"');
+		return gitUtils.config('filter.jam.smudge','git-jam filter-smudge')
 	})
 	.then(function(){
-		return command('git rev-parse --git-dir');
+		return gitUtils.getJamPath();
 	})
-	.then(function(res){
-		//check if the jam directory exists.
-		var jamPath = path.join(path.join.apply(this,res.trim().split('/')),name);
-		console.log(jamPath);
-		if(fs.existsSync(jamPath)){
-			return When(true);
-		}else{
-			return When(fs.mkdirSync(jamPath));
+	.then(function(jamPath){
+		//if it is a fat repo, move the fat content to jam.
+		var fatPath = path.resolve(jamPath,'../fat');
+		if(fs.existsSync(fatPath)){
+			fs.renameSync(fatPath,jamPath);
 		}
+		else if(!fs.existsSync(jamPath)){
+			fs.mkdirSync(jamPath);
+		}
+		fs.writeFileSync(path.join(jamPath,'missingJam'),'');
+		return When(jamPath);
 	});
 }
 
-function command(command){
-	var defered = When.defer();
-	childProcess.exec(command,function(err,stdout,stderr){
-		if(err){
-			console.log(stdout);
-			defered.reject(err);
-		}else{
-			defered.resolve(stdout);
-		}
-	});
-	return defered.promise;
-}
+
 
 main(process.argv.slice(2));

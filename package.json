@@ -1,0 +1,42 @@
+{
+  "name": "git-jam",
+  "description": "Yet another binary manager for git, largely inspired by git-fat, but aimed at being more cross-platform",
+  "version": "0.1.0",
+  "keywords": [
+    "git",
+    "binary",
+    "manager",
+    "lightweight",
+    "cross-platform",
+    "git-fat",
+    "media",
+    "git-media",
+    "large"
+  ],
+  "maintainers": [
+    {
+      "name": "John Tiesselune",
+      "email": "john@tiesselune.com",
+      "web": "http://www.tiesselune.com"
+    }
+  ],
+  "dependencies": {
+    "when": "3.5.x"
+  },
+  "bugs": {
+    "web": "https://github.com/tiesselune/git-jam/issues"
+  },
+  "repositories": [
+    {
+      "type": "git",
+      "url": "https://github.com/tiesselune/git-jam.git"
+    }
+  ],
+  "licenses": [
+    {
+      "name": "MIT",
+      "url": "https://github.com/tiesselune/git-jam/blob/master/LICENSE"
+    }
+  ],
+  "homepage": "https://github.com/tiesselune/git-jam"
+}
