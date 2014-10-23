@@ -22,6 +22,30 @@ exports.config = function(param,value){
 	return exec('git config "' + param + '" "' + value + '"');
 }
 
+exports.lsFiles = function(){
+	return exec('git ls-tree --name-only --full-tree -z -r HEAD')
+	.then(function(res){
+		return res.split('\0');
+	});
+};
+
+exports.lsFilteredFiles = function(){
+	return exports.lsFiles()
+	.then(function(res){
+		return exec('git check-attr -z filter ' + res.join(' '));
+	})
+	.then(function(res){
+		var files = [];
+		var words = res.split('\0');
+		for(var i = 0; i< words.length;i += 3){
+			if(words[i+2] == 'jam'){
+				files.push(words[i]);
+			}
+		}
+		return files;
+	});
+}
+
 function exec(command){
 	var defered = When.defer();
 	childProcess.exec(command,function(err,stdout){
