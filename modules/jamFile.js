@@ -1,6 +1,9 @@
 var When = require('when');
 var constants = require('./constants.json')
 var crypto = require('crypto');
+var fs = require('fs');
+var gitUtils = require('./gitUtils.js');
+var path = require('path');
 
 exports.isJam = function(data){
 	if(!(data instanceof Buffer) || data.length >= 54 || data.length < 52){
@@ -23,6 +26,20 @@ exports.getDigestFromJam = function(data){
 	}
 	return "";
 };
+
+exports.isAlreadyMissing = function(digest){
+	return gitUtils.getJamPath()
+	.then(function(jamPath){
+		var missingJamPath = path.join(jamPath,'missingJam')
+		if(!fs.existsSync(missingJamPath)){
+			console.log('HEY');
+			return false;
+		}
+		var missingJam = fs.readFileSync(missingJamPath,'utf8');
+		var missingFiles = missingJam.split('\n');
+		return missingFiles.indexOf(digest) != -1;
+	});
+}
 
 exports.generateJam = function(data){
 	var digest = sha1(data);

@@ -41,7 +41,12 @@ exports.jamSmudgeFilter = function(){
 				var objectPath = path.join(jamPath,digest);
 				if(!fs.existsSync(objectPath)){
 					var line = digest + '\n';
-					fs.appendFileSync(path.join(jamPath,'missingJam'),line);
+					jamFile.isAlreadyMissing(digest)
+					.then(function(res){
+						if(!res){
+							fs.appendFileSync(path.join(jamPath,'missingJam'),line);
+						}
+					});
 					fs.writeSync(1, constants.JamCookie + digest);
 				}
 				else{
