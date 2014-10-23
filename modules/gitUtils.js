@@ -44,7 +44,7 @@ exports.lsFilteredFiles = function(){
 		}
 		return files;
 	});
-}
+};
 
 function exec(command){
 	var defered = When.defer();

@@ -5,7 +5,7 @@ var fs = require('fs');
 var gitUtils = require('./gitUtils.js');
 var path = require('path');
 
-exports.isJam = function(data){
+exports.isJamData = function(data){
 	if(!(data instanceof Buffer) || data.length >= 54 || data.length < 52){
 		return false;
 	}
@@ -14,6 +14,31 @@ exports.isJam = function(data){
 		return false;
 	}
 	return true;
+};
+
+exports.isJamPath = function(path){
+	if(typeof path == 'string'){
+		var data = fs.readFileSync(path);
+		return exports.isJamData(data);
+	}
+	else{
+		return false;
+	}
+}
+
+exports.isJam = function(arg){
+	if(typeof arg == 'string'){
+		return exports.isJamPath(arg);
+	}else if(arg instanceof Buffer){
+		return exports.isJamData(arg);
+	}else{
+		return false;
+	}
+}
+
+exports.mightBeJam = function(path){
+	var size = fs.statSync(path).size;
+	return size == 52 || size == 53;
 };
 
 exports.getDigestFromJam = function(data){
