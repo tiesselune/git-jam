@@ -39,7 +39,6 @@ exports.jamSmudgeFilter = function(){
 			gitUtils.getJamPath()
 			.then(function(jamPath){
 				var objectPath = path.join(jamPath,digest);
-				console.log(objectPath);
 				if(!fs.existsSync(objectPath)){
 					var line = digest + '\n';
 					fs.appendFileSync(path.join(jamPath,'missingJam'),line);
