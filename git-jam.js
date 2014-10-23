@@ -6,6 +6,7 @@ var When = require('when');
 var fs = require('fs');
 var path = require('path');
 var gitUtils = require('./modules/gitUtils.js');
+var filters = require('./modules/filters.js');
 
 function main(args){
 	if(args.length === 0){
@@ -31,11 +32,11 @@ function main(args){
 }
 
 function jamFilterSmudge(){
-
+	filters.jamSmudgeFilter();
 }
 
 function jamFilterClean(){
-	
+	filters.jamCleanFilter();
 }
 
 function jamPush(){
