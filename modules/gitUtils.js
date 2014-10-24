@@ -19,7 +19,7 @@ exports.getJamPath = function(){
 }
 
 exports.config = function(param,value){
-	return exec('git config "' + param + '" "' + value + '"');
+	return exec(('git config "' + param + '"' + (value === undefined ? '' :  ' "'  + value + '"')));
 }
 
 exports.lsFiles = function(){
