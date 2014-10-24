@@ -20,6 +20,23 @@ exports.getJamPath = function(){
 
 exports.config = function(param,value){
 	return exec(('git config "' + param + '"' + (value === undefined ? '' :  ' "'  + value + '"')));
+};
+
+exports.gitJamConfig = function(param,value){
+	return config('jam.' + param,value);
+};
+
+exports.dotJamConfig = function(param,value){
+	return getDotJamJSON()
+	.then(function(dotJamJSON){
+		if(value === undefined){
+			return getDottedObjectProperty(param,dotJamJSON);
+		}
+		else{
+			setDottedObjectProperty(param,dotJamJSON,value);
+			setDotJamJSON(dotJamJSON);
+		}
+	});
 }
 
 exports.lsFiles = function(){
@@ -53,4 +70,52 @@ function exec(command){
 		}
 	});
 	return defered.promise;
+}
+
+function getDottedObjectProperty(property,object){
+	var properties = property.split('.');
+	if(typeof object != 'object'){
+		return undefined;
+	}
+	if(properties.length == 1){
+		return object[properties[0]];
+	}else{
+		if(object == undefined || object[properties[0]] == undefined){
+			return undefined;
+		}
+		return getDottedObjectProperty(properties.slice(1).join('.'),object[properties[0]]);
+	}
+}
+
+function setDottedObjectProperty(property,object,value){
+	var properties = property.split('.');
+	if(properties.length == 1){
+		object[properties[0]] = value;
+	}else{
+		if(object[properties[0]] == undefined){
+			object[properties[0]] = {};
+		}
+		setDottedObjectProperty(properties.slice(1).join('.'),object[properties[0]]);
+	}
+}
+
+function getDotJamJSON(){
+	return getJamPath()
+	.then(function(jamPath){
+		var dotJamPath = path.resolve(jamPath,'../../.jamconfig');
+		if(fs.existsSync(dotJamPath)){
+			return JSON.parse(fs.readFileSync(dotJamPath,'utf8'));
+		}
+		else{
+			return {};
+		}
+	});
+}
+
+function setDotJamJSON(object){
+	return getJamPath()
+	.then(function(jamPath){
+		var dotJamPath = path.resolve(jamPath,'../../.jamconfig');
+		fs.writeFileSync(JSON.stringify(object));
+	});
 }

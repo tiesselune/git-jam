@@ -1,5 +1,6 @@
 var ssh2 = require('ssh2');
 var When = require('when');
+var gitUtils = require('./gitUtils.js');
 
 exports.PushFiles = function(){
 	var connection = new ssh2();
@@ -19,7 +20,7 @@ exports.SSHConnection = function(){
 	this.connection = new ssh2();
 }
 
-SSHConnection.prototype.connect = function(options){
+exports.SSHConnection.prototype.connect = function(options){
 	var defered = When.defer();
 
 	this.connection
@@ -34,7 +35,34 @@ SSHConnection.prototype.connect = function(options){
 	return defered.promise;
 };
 
-SSHConnection.prototype.sftp = function(){
+exports.SSHConnection.prototype.connectionAttempt = function(){
+	return gitUtils.dotJamConfig('sftp.host')
+	.then(function(host){
+		if(host == undefined){
+			throw new Error('Please set up a host for SFTP connection : git jam config sftp.host example.com');
+		}
+		return [host,gitUtils.gitJamConfig('jam.sftp-user'),gitUtils.gitJamConfig('jam.sftp-password')];
+	})
+	.spread(function(host,user,password){
+		if(user == undefined){
+			throw new Error('Please set up a user for SFTP connection : git config jam.sftp-user username');
+		}
+		if(password != null){
+			return this.connect({host : host,username : user, password : password, port : 22});
+		}
+		else{
+			var privateKeyPath = path.resolve(getUserHome(),'.ssh/id_rsa');
+			if(fs.existsSync(privateKeyPath)){
+				return this.connect({host : host,username : user, privateKey : fs.readFileSync(privateKeyPath), port : 22});
+			}
+		}
+	})
+	.then(function(res){
+		
+	})
+}
+
+exports.SSHConnection.prototype.sftp = function(){
 	var defered = When.defer();
 	this.connection.sftp(function(err,sftp){
 		if(err){
@@ -47,13 +75,17 @@ SSHConnection.prototype.sftp = function(){
 	return defered.promise;
 };
 
+exports.SSHConnection.prototype.end = function(){
+	this.connection.end();
+};
+
 function SFTP(sftpObject){
 	this.sftp = sftpObject;
 };
 
 SFTP.prototype.fastGet = function(remotePath,localPath,options){
 	var defered = When.defer();
-	this.sftp(remotePath,localPath,options,function(err){
+	this.sftp.fastGet(remotePath,localPath,options,function(err){
 		if(err){
 			defered.reject(err);
 		}
@@ -66,7 +98,7 @@ SFTP.prototype.fastGet = function(remotePath,localPath,options){
 
 SFTP.prototype.fastPut = function(localPath,remotePath,options){
 	var defered = When.defer();
-	this.sftp(localPath,remotePath,options,function(err){
+	this.sftp.fastPut(localPath,remotePath,options,function(err){
 		if(err){
 			defered.reject(err);
 		}
@@ -76,3 +108,7 @@ SFTP.prototype.fastPut = function(localPath,remotePath,options){
 	});
 	return defered.promise;
 };
+
+function getUserHome() {
+  return process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
+}
