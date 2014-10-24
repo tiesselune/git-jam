@@ -10,7 +10,8 @@ Yet another binary manager for git, largely inspired by git-fat, but aimed at be
 The main problems I encountered in `git-fat` (although it's a great tool) are:
 
  * Windows use. Configuration of `git-fat` under windows has proven being a lot of sweat, especially when installing the system to more and more computers
- * Rsync. Though rsync is great, we noticed `git fat` operations being slower and slower as the project grew.
+ * Rsync. Though rsync is great, we had to install cygwin to use it under windows when a simple SCP would have suited our needs.
+ * Speed. Some things are being merged into `git-fat` to increase its speed and usability. But as our project grew, `git fat` operations grew slower and slower.
 
 ##What's new?
 
