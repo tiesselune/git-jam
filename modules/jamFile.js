@@ -41,7 +41,7 @@ exports.mightBeJam = function(path){
 	return size == 52 || size == 53;
 };
 
-exports.getDigestFromJam = function(data){
+exports.getDigestFromJamData = function(data){
 	if(!(data instanceof Buffer) || data.length >= 54 || data.length < 52){
 		return "";
 	}
@@ -52,10 +52,28 @@ exports.getDigestFromJam = function(data){
 	return "";
 };
 
+exports.getDigestFromJamPath = function(path){
+	if(typeof path != 'string'){
+		return "";
+	}
+	var data = fs.readFileSync(path);
+	return exports.getDigestFromJamData(data);
+};
+
+exports.getDigestFromJam = function(arg){
+	if(typeof arg == 'string'){
+		return exports.getDigestFromJamPath(arg);
+	}
+	if(arg instanceof Buffer){
+		return exports.getDigestFromJamData(data);
+	}
+	return "";
+}
+
 exports.isAlreadyMissing = function(digest){
 	return gitUtils.getJamPath()
 	.then(function(jamPath){
-		var missingJamPath = path.join(jamPath,'missingJam')
+		var missingJamPath = path.join(jamPath,constants.MissingJam)
 		if(!fs.existsSync(missingJamPath)){
 			console.log('HEY');
 			return false;

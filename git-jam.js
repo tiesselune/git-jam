@@ -7,6 +7,7 @@ var fs = require('fs');
 var path = require('path');
 var gitUtils = require('./modules/gitUtils.js');
 var filters = require('./modules/filters.js');
+var constants = require('./modules/constants.json');
 
 function main(args){
 	if(args.length === 0){
@@ -95,7 +96,8 @@ function jamInit(){
 		else if(!fs.existsSync(jamPath)){
 			fs.mkdirSync(jamPath);
 		}
-		fs.writeFileSync(path.join(jamPath,'missingJam'),'');
+		fs.writeFileSync(path.join(jamPath,constants.MissingJam),'');
+		fs.writeFileSync(path.join(jamPath,constants.ToSyncJam),'');
 		return When(jamPath);
 	});
 }

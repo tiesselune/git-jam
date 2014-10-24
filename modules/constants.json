@@ -1,4 +1,6 @@
 {
 	"JamCookie" : "#$# git-jam ",
-	"FatCookie" : "#$# git-fat "
+	"FatCookie" : "#$# git-fat ",
+	"MissingJam" : "missingJam",
+	"ToSyncJam" : "toSyncJam"
 }

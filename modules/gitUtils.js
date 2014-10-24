@@ -29,11 +29,8 @@ exports.lsFiles = function(){
 	});
 };
 
-exports.lsFilteredFiles = function(){
-	return exports.lsFiles()
-	.then(function(res){
-		return exec('git check-attr -z filter ' + res.join(' '));
-	})
+exports.filteredFiles = function(files){
+	return exec('git check-attr -z filter ' + files.join(' '));
 	.then(function(res){
 		var files = [];
 		var words = res.split('\0');

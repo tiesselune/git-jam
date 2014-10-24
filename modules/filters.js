@@ -18,6 +18,7 @@ exports.jamCleanFilter = function(){
 			.then(function(jamPath){
 				if(!fs.existsSync(path.join(jamPath,digest))){
 					fs.writeFileSync(path.join(jamPath,digest),data);
+					fs.appendFileSync(path.join(jamPath,constants.ToSyncJam),digest + '\n');
 				}
 				fs.writeSync(1, constants.JamCookie + digest + '\n');
 			});
@@ -44,7 +45,7 @@ exports.jamSmudgeFilter = function(){
 					jamFile.isAlreadyMissing(digest)
 					.then(function(res){
 						if(!res){
-							fs.appendFileSync(path.join(jamPath,'missingJam'),line);
+							fs.appendFileSync(path.join(jamPath,constants.MissingJam),line);
 						}
 					});
 					fs.writeSync(1, constants.JamCookie + digest);
