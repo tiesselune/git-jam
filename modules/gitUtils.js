@@ -23,7 +23,7 @@ exports.config = function(param,value){
 };
 
 exports.gitJamConfig = function(param,value){
-	return config('jam.' + param,value);
+	return exports.config('jam.' + param,value);
 };
 
 exports.dotJamConfig = function(param,value){
@@ -47,7 +47,7 @@ exports.lsFiles = function(){
 };
 
 exports.filteredFiles = function(files){
-	return exec('git check-attr -z filter ' + files.join(' '));
+	return exec('git check-attr -z filter ' + files.join(' '))
 	.then(function(res){
 		var files = [];
 		var words = res.split('\0');
