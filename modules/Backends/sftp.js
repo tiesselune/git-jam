@@ -1,13 +1,55 @@
 var ssh2 = require('ssh2');
 var When = require('when');
-var gitUtils = require('./gitUtils.js');
+var gitUtils = require('../gitUtils.js');
+var path = require('path');
 
-exports.PushFiles = function(){
-	var connection = new ssh2();
+exports.PushFiles = function(jamPath,digests){
+	var sshConn = new SSHConnection();
+	return conn.connectionAttempt()
+	.then(function(){
+		return [conn.sftp(),gitUtils.dotJamConfig('sftp.path')];
+	})
+	.then(function(sftp,remotePath){
+		var promiseChain = When(true);
+		digests.forEach(function(digest){
+			promiseChain = promiseChain.then(function(){
+				return sftp.fastPut(path.join(jamPath,digest),path.join(remotePath,digest),{});
+			})
+			.then(function(){
+				return sftp.chmod(path.join(jamPath,digest),0750);
+			})
+			.catch(function(err){
+				console.log("Error on ",digest,".",err.message);
+			});
+		});
+		return promiseChain;
+	})
+	.catch(function(err){
+		console.log(err.message);
+	});
 };
 
-exports.PullFiles = function(){
-	
+exports.PullFiles = function(jamPath,digests){
+	var sshConn = new SSHConnection();
+	return conn.connectionAttempt()
+	.then(function(){
+		return [conn.sftp(),gitUtils.dotJamConfig('sftp.path')];
+	})
+	.then(function(sftp,remotePath){
+		var promiseChain = When(true);
+		digests.forEach(function(digest){
+			promiseChain = promiseChain.then(function(){
+				return sftp.fastGet(path.join(remotePath,digest),path.join(jamPath,digest),{});
+			})
+			.catch(function(err){
+				console.log("Error on ",digest,".",err.message);
+			});
+		});
+		return promiseChain;
+	})
+	.catch(function(err){
+		console.log(err.message);
+	});
 };
 
 function sendFiles(files,targetDirectory){
@@ -35,7 +77,7 @@ exports.SSHConnection.prototype.connect = function(options){
 	return defered.promise;
 };
 
-exports.SSHConnection.prototype.connectionAttempt = function(){
+exports.SSHConnection.prototype.getSFTP = function(){
 	return gitUtils.dotJamConfig('sftp.host')
 	.then(function(host){
 		if(host == undefined){
@@ -56,10 +98,7 @@ exports.SSHConnection.prototype.connectionAttempt = function(){
 				return this.connect({host : host,username : user, privateKey : fs.readFileSync(privateKeyPath), port : 22});
 			}
 		}
-	})
-	.then(function(res){
-		
-	})
+	});
 }
 
 exports.SSHConnection.prototype.sftp = function(){
@@ -107,6 +146,55 @@ SFTP.prototype.fastPut = function(localPath,remotePath,options){
 		}
 	});
 	return defered.promise;
+};
+
+SFTP.prototype.open = function(filename,mode){
+	var defered = When.defer();
+	this.sftp.open(filename,mode,function(err,handle){
+		if(err){
+			defered.reject(err);
+		}
+		else{
+			defered.resolve(handle);
+		}
+	});
+	return defered.promise;
+};
+
+SFTP.prototype.close = function(handle){
+	var defered = When.defer();
+	this.sftp.close(handle,function(err){
+		if(err){
+			defered.reject(err);
+		}
+		else{
+			defered.resolve(true);
+		}
+	});
+	return defered.promise;
+};
+
+SFTP.prototype.fchmod = function(handle,mod){
+	var defered = When.defer();
+	this.sftp.fchmod(handle,mod,function(err){
+		if(err){
+			defered.reject(err);
+		}
+		else{
+			defered.resolve(true);
+		}
+	});
+	return defered.promise;
+};
+
+SFTP.prototype.chmod = function(filename,mod){
+	return this.open(filename,'w')
+	.then(function(handle){
+		return [handle,this.fchmod(handle,mod)];
+	})
+	.spread(function(handle){
+		return this.close(handle);
+	});
 };
 
 function getUserHome() {
