@@ -4,6 +4,7 @@ var gitUtils = require('../gitUtils.js');
 var path = require('path');
 
 exports.PushFiles = function(jamPath,digests){
+	var okDigestList = [];
 	var sshConn = new SSHConnection();
 	return conn.connectionAttempt()
 	.then(function(){
@@ -18,11 +19,19 @@ exports.PushFiles = function(jamPath,digests){
 			.then(function(){
 				return sftp.chmod(path.join(jamPath,digest),0750);
 			})
+			.then(function(){
+				okDigestList.push(digest);
+				console.log('Pulled',digest,'.');
+				return When(true);
+			})
 			.catch(function(err){
-				console.log("Error on ",digest,".",err.message);
+				console.log("Error on",digest,".",err.message);
 			});
 		});
-		return promiseChain;
+		return promiseChain
+		.then(function(){
+			return okDigestList;
+		});
 	})
 	.catch(function(err){
 		console.log(err.message);
@@ -42,7 +51,7 @@ exports.PullFiles = function(jamPath,digests){
 				return sftp.fastGet(path.join(remotePath,digest),path.join(jamPath,digest),{});
 			})
 			.catch(function(err){
-				console.log("Error on ",digest,".",err.message);
+				console.log("Error on",digest,".",err.message);
 			});
 		});
 		return promiseChain;
