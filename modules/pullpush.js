@@ -3,10 +3,10 @@ var gitUtils = require('./gitUtils.js');
 var jamFile = require('./jamFile.js');
 var path = require('path');
 var fs = require('fs');
-var constants = require('constants.json');
+var constants = require('./constants.json');
 
 exports.pull = function(){
-	return When.all([gitUtils.dotJamConfig('backend'),gitUtils.getJamPath()]
+	return When.all([gitUtils.dotJamConfig('backend'),gitUtils.getJamPath()])
 	.spread(function(back,jamPath){
 		var backend = back? back : "sftp";
 		var digests = fs.readFileSync(path.join(jamPath,constants.MissingJam),'utf-8').split('\n');
@@ -19,6 +19,27 @@ exports.pull = function(){
 			console.error('Could not pull',failedObjects.length,'objects.');
 		}
 		fs.writeFileSync(path.join(jamPath,constants.MissingJam),failedObjects.join('\n'));
+		return exports.restoreFiles();
+	})
+	.then(function(res){
+		console.log('Done.');
+	});
+};
+
+exports.push = function(){
+	return When.all([gitUtils.dotJamConfig('backend'),gitUtils.getJamPath()])
+	.spread(function(back,jamPath){
+		var backend = back? back : "sftp";
+		var digests = fs.readFileSync(path.join(jamPath,constants.ToSyncJam),'utf-8').split('\n');
+		console.log('Preparing to push',digests.length,'objects.');
+		return [require('./Backends/' + backend).PushObjects(jamPath,digests),digests.length,jamPath];
+	})
+	.spread(function(failedObjects,numberOfObjects,jamPath){
+		console.log('\nPusheded',numberOfObjects - failedObjects.length,'objects.');
+		if(failedObjects.length !== 0){
+			console.error('Could not push',failedObjects.length,'objects.');
+		}
+		fs.writeFileSync(path.join(jamPath,constants.ToSyncJam),failedObjects.join('\n'));
 		return exports.restoreFiles();
 	})
 	.then(function(res){
@@ -53,5 +74,21 @@ exports.restoreFiles = function(){
 			console.error("/!\\ Could not restore",skippedFiles.length,"files.");
 		}
 		return skippedFiles;
+	});
+};
+
+exports.getCheckedOutJamFiles = function(){
+	var digests = [];
+	return gitUtils.lsFiles()
+	.then(function(files){
+		return gitUtils.filteredFiles(files);
+	})
+	.then(function(files){
+		files.forEach(function(file){
+			if(jamFile.isJam(file)){
+				digests.push(jamFile.getDigestFromJam(file));
+			}
+		});
+		return digests;
 	});
 };

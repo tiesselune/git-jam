@@ -115,6 +115,9 @@ exports.SSHConnection.prototype.getSFTP = function(){
 			if(fs.existsSync(privateKeyPath)){
 				return this.connect({host : host,username : user, privateKey : fs.readFileSync(privateKeyPath), port : 22});
 			}
+			else{
+				throw new Error('Please set up a password for SFTP connection : git config jam.sftp-password <pswd>\nYou can also set up a SSH key pair in HOME/.ssh.');
+			}
 		}
 	});
 }

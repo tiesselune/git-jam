@@ -19,7 +19,7 @@ exports.getJamPath = function(){
 }
 
 exports.config = function(param,value){
-	return exec(('git config "' + param + '"' + (value === undefined ? '' :  ' "'  + value + '"')));
+	return exec(('git config "' + param + '"' + (value === undefined ? '' :  (' "'  + value + '"'))));
 };
 
 exports.gitJamConfig = function(param,value){
@@ -66,7 +66,11 @@ function exec(command){
 		if(err){
 			defered.reject(new Error(stdout));
 		}else{
-			defered.resolve(stdout);
+			var res = stdout;
+			if(res[res.length -1] == '\n'){
+				res = res.slice(0,res.length-1);
+			}
+			defered.resolve(res);
 		}
 	});
 	return defered.promise;
