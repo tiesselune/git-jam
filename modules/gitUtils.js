@@ -12,7 +12,7 @@ exports.getJamPath = function(){
 	else{
 		return exec('git rev-parse --git-dir')
 		.then(function(res){
-			var jamPath = path.join(path.join.apply(this,res.trim().split('/')),'jam');
+			var jamPath = path.join(path.join.apply(this,[ res[0] == "/" ? res[0] : ""].concat(res.trim().split('/'))),'jam');
 			return jamPath;
 		});
 	}
@@ -64,7 +64,7 @@ function exec(command){
 	var defered = When.defer();
 	childProcess.exec(command,function(err,stdout){
 		if(err){
-			defered.reject(new Error(stdout));
+			defered.reject(new Error(err));
 		}else{
 			var res = stdout;
 			if(res[res.length -1] == '\n'){
@@ -99,12 +99,12 @@ function setDottedObjectProperty(property,object,value){
 		if(object[properties[0]] == undefined){
 			object[properties[0]] = {};
 		}
-		setDottedObjectProperty(properties.slice(1).join('.'),object[properties[0]]);
+		setDottedObjectProperty(properties.slice(1,properties.length).join('.'),object[properties[0]],value);
 	}
 }
 
 function getDotJamJSON(){
-	return getJamPath()
+	return exports.getJamPath()
 	.then(function(jamPath){
 		var dotJamPath = path.resolve(jamPath,'../../.jamconfig');
 		if(fs.existsSync(dotJamPath)){
@@ -117,9 +117,9 @@ function getDotJamJSON(){
 }
 
 function setDotJamJSON(object){
-	return getJamPath()
+	return exports.getJamPath()
 	.then(function(jamPath){
 		var dotJamPath = path.resolve(jamPath,'../../.jamconfig');
-		fs.writeFileSync(JSON.stringify(object));
+		fs.writeFileSync(dotJamPath,JSON.stringify(object,null,'\t'));
 	});
 }

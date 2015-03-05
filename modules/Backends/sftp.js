@@ -5,12 +5,15 @@ var path = require('path');
 
 exports.PushFiles = function(jamPath,digests){
 	var failedDigestList = [];
-	var sshConn = new SSHConnection();
-	return conn.connectionAttempt()
+	var sshConn = new exports.SSHConnection();
+	return sshConn.connectUsingCredentials()
 	.then(function(){
-		return [conn.sftp(),gitUtils.dotJamConfig('sftp.path')];
+		return [sshConn.sftp(),gitUtils.dotJamConfig('sftp.path')];
 	})
 	.then(function(sftp,remotePath){
+		if(!remotePath){
+			throw new Error("Please specify a remote path :\n\tgit jam config -g sftp.path <path>");
+		}
 		var promiseChain = When(true);
 		digests.forEach(function(digest){
 			promiseChain = promiseChain.then(function(){
@@ -32,20 +35,20 @@ exports.PushFiles = function(jamPath,digests){
 		.then(function(){
 			return failedDigestList;
 		});
-	})
-	.catch(function(err){
-		console.error(err.message);
 	});
 };
 
 exports.PullFiles = function(jamPath,digests){
 	var failedDigestList = [];
-	var sshConn = new SSHConnection();
-	return conn.connectionAttempt()
+	var sshConn = new exports.SSHConnection();
+	return sshConn.connectUsingCredentials()
 	.then(function(){
-		return [conn.sftp(),gitUtils.dotJamConfig('sftp.path')];
+		return [sshConn.sftp(),gitUtils.dotJamConfig('sftp.path')];
 	})
 	.then(function(sftp,remotePath){
+		if(!remotePath){
+			throw new Error("Please specify a remote path :\n\tgit jam config -g sftp.path <path>");
+		}
 		var promiseChain = When(true);
 		digests.forEach(function(digest){
 			promiseChain = promiseChain.then(function(){
@@ -64,9 +67,6 @@ exports.PullFiles = function(jamPath,digests){
 	})
 	.then(function(){
 		return failedDigestList;
-	})
-	.catch(function(err){
-		console.error(err.message);
 	});
 };
 
@@ -95,17 +95,17 @@ exports.SSHConnection.prototype.connect = function(options){
 	return defered.promise;
 };
 
-exports.SSHConnection.prototype.getSFTP = function(){
+exports.SSHConnection.prototype.connectUsingCredentials = function(){
 	return gitUtils.dotJamConfig('sftp.host')
 	.then(function(host){
 		if(host == undefined){
-			throw new Error('Please set up a host for SFTP connection : git jam config sftp.host example.com');
+			throw new Error('Please set up a host for SFTP connection :\n\tgit jam config -g sftp.host example.com');
 		}
 		return [host,gitUtils.gitJamConfig('jam.sftp-user'),gitUtils.gitJamConfig('jam.sftp-password')];
 	})
 	.spread(function(host,user,password){
 		if(user == undefined){
-			throw new Error('Please set up a user for SFTP connection : git config jam.sftp-user username');
+			throw new Error('Please set up a user for SFTP connection :\n\tgit config jam.sftp-user username');
 		}
 		if(password != null){
 			return this.connect({host : host,username : user, password : password, port : 22});
@@ -116,7 +116,7 @@ exports.SSHConnection.prototype.getSFTP = function(){
 				return this.connect({host : host,username : user, privateKey : fs.readFileSync(privateKeyPath), port : 22});
 			}
 			else{
-				throw new Error('Please set up a password for SFTP connection : git config jam.sftp-password <pswd>\nYou can also set up a SSH key pair in HOME/.ssh.');
+				throw new Error('Please set up a password for SFTP connection :\n\tgit config jam.sftp-password <pswd>\nYou can also set up a SSH key pair in HOME/.ssh.');
 			}
 		}
 	});

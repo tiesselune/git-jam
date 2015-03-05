@@ -23,6 +23,9 @@ exports.pull = function(){
 	})
 	.then(function(res){
 		console.log('Done.');
+	})
+	.catch(function(err){
+		console.error(err.message);
 	});
 };
 
@@ -31,8 +34,11 @@ exports.push = function(){
 	.spread(function(back,jamPath){
 		var backend = back? back : "sftp";
 		var digests = fs.readFileSync(path.join(jamPath,constants.ToSyncJam),'utf-8').split('\n');
+		if(digests[digests.length - 1] == ""){
+			digests = digests.slice(0, digests.length - 1);
+		}
 		console.log('Preparing to push',digests.length,'objects.');
-		return [require('./Backends/' + backend).PushObjects(jamPath,digests),digests.length,jamPath];
+		return [require('./Backends/' + backend).PushFiles(jamPath,digests),digests.length,jamPath];
 	})
 	.spread(function(failedObjects,numberOfObjects,jamPath){
 		console.log('\nPusheded',numberOfObjects - failedObjects.length,'objects.');
@@ -44,6 +50,9 @@ exports.push = function(){
 	})
 	.then(function(res){
 		console.log('Done.');
+	})
+	.catch(function(err){
+		console.error(err.message);
 	});
 };
 

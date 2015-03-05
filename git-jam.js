@@ -10,7 +10,7 @@ var filters = require('./modules/filters.js');
 var pullpush = require('./modules/pullpush.js');
 var constants = require('./modules/constants.json');
 
-var usage = 'Usage : git-jam [init|filter <extension>|push|pull|config]';
+var usage = 'Usage : git-jam [init|filter <extension>|push|pull|config <property> [<value>]]';
 
 function main(args){
 	if(args.length === 0){
@@ -34,7 +34,9 @@ function main(args){
 		case 'filter':
 			return addFilters(remainingArgs);
 		case 'config':
-			return jamConfig(remainingArgs);
+			if(remainingArgs.length > 0){
+				return jamConfig(remainingArgs);
+			}
 		default :
 			console.log(usage);
 	}
@@ -61,12 +63,28 @@ function jamRestore(){
 }
 
 function jamConfig(args){
-	var result = gitUtils.gitJamConfig(args[0],args[1])
-	.then(function(result){
-		if(result){
-			console.log(result);
-		}
-	});
+	var g = args.indexOf('-g');
+	if(g >= 0){
+		args.splice(g,1);
+		var result = gitUtils.dotJamConfig(args[0],args[1])
+		.then(function(result){
+			if(result){
+				console.log(result);
+			}
+		});
+	}
+	else{
+		var result = gitUtils.gitJamConfig(args[0],args[1])
+		.then(function(result){
+			if(result){
+				console.log(result);
+			}
+		})
+		.catch(function(err){
+
+		});
+	}
+
 }
 
 function addFilters(args){
@@ -99,7 +117,6 @@ function addFilter(filter){
 }
 
 function jamInit(){
-	var name = 'jam';
 	//Make git config entries
 	return gitUtils.config('filter.jam.clean','git-jam filter-clean')
 	.then(function(){
@@ -117,9 +134,12 @@ function jamInit(){
 		else if(!fs.existsSync(jamPath)){
 			fs.mkdirSync(jamPath);
 		}
-		return pullpush.getCheckedOutJamFiles();
+		return [pullpush.getCheckedOutJamFiles()
+		.catch(function(err){
+			return [[],jamPath];
+		}),jamPath];
 	})
-	.then(function(digests){
+	.spread(function(digests,jamPath){
 		fs.writeFileSync(path.join(jamPath,constants.MissingJam),digests.join('\n'));
 		fs.writeFileSync(path.join(jamPath,constants.ToSyncJam),'');
 		return When(true);
