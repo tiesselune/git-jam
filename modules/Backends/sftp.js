@@ -84,12 +84,6 @@ exports.PullFiles = function(jamPath,digests){
 	});
 };
 
-function sendFiles(files,targetDirectory){
-	var connection = new ssh2();
-	connection.on('')
-}
-
-
 exports.SSHConnection = function(){
 	this.connection = new ssh2();
 }
