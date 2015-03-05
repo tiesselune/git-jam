@@ -4,7 +4,7 @@ var gitUtils = require('../gitUtils.js');
 var path = require('path');
 
 exports.PushFiles = function(jamPath,digests){
-	var okDigestList = [];
+	var failedDigestList = [];
 	var sshConn = new SSHConnection();
 	return conn.connectionAttempt()
 	.then(function(){
@@ -20,25 +20,26 @@ exports.PushFiles = function(jamPath,digests){
 				return sftp.chmod(path.join(jamPath,digest),0750);
 			})
 			.then(function(){
-				okDigestList.push(digest);
-				console.log('Pulled',digest,'.');
+				console.log('Pushed',digest,'.');
 				return When(true);
 			})
 			.catch(function(err){
-				console.log("Error on",digest,".",err.message);
+				failedDigestList.push(digest);
+				console.error("Error on",digest,".",err.message);
 			});
 		});
 		return promiseChain
 		.then(function(){
-			return okDigestList;
+			return failedDigestList;
 		});
 	})
 	.catch(function(err){
-		console.log(err.message);
+		console.error(err.message);
 	});
 };
 
 exports.PullFiles = function(jamPath,digests){
+	var failedDigestList = [];
 	var sshConn = new SSHConnection();
 	return conn.connectionAttempt()
 	.then(function(){
@@ -50,14 +51,22 @@ exports.PullFiles = function(jamPath,digests){
 			promiseChain = promiseChain.then(function(){
 				return sftp.fastGet(path.join(remotePath,digest),path.join(jamPath,digest),{});
 			})
+			.then(function(){
+				console.log('Pulled',digest,'.');
+				return When(true);
+			})
 			.catch(function(err){
-				console.log("Error on",digest,".",err.message);
+				failedDigestList.push(digest);
+				console.error("Error on",digest,".",err.message);
 			});
 		});
 		return promiseChain;
 	})
+	.then(function(){
+		return failedDigestList;
+	})
 	.catch(function(err){
-		console.log(err.message);
+		console.error(err.message);
 	});
 };
 
