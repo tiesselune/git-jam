@@ -6,7 +6,7 @@ var fs = require('fs');
 var constants = require('./constants.json');
 
 exports.pull = function(){
-	return When.all([gitUtils.dotJamConfig('backend'),gitUtils.getJamPath()])
+	return When.all([gitUtils.jamConfig('backend'),gitUtils.getJamPath()])
 	.spread(function(back,jamPath){
 		var backend = back? back : "sftp";
 		var digests = fs.readFileSync(path.join(jamPath,constants.MissingJam),'utf-8').split('\n');
@@ -16,7 +16,7 @@ exports.pull = function(){
 	.spread(function(failedObjects,numberOfObjects,jamPath){
 		console.log('\nPulled',numberOfObjects - failedObjects.length,'objects.');
 		if(failedObjects.length !== 0){
-			console.error('Could not pull',failedObjects.length,'objects.');
+			console.error('/!\\ Could not pull',failedObjects.length,'objects.');
 		}
 		fs.writeFileSync(path.join(jamPath,constants.MissingJam),failedObjects.join('\n'));
 		return exports.restoreFiles();
@@ -30,7 +30,7 @@ exports.pull = function(){
 };
 
 exports.push = function(){
-	return When.all([gitUtils.dotJamConfig('backend'),gitUtils.getJamPath()])
+	return When.all([gitUtils.jamConfig('backend'),gitUtils.getJamPath()])
 	.spread(function(back,jamPath){
 		var backend = back? back : "sftp";
 		var digests = fs.readFileSync(path.join(jamPath,constants.ToSyncJam),'utf-8').split('\n');
@@ -41,12 +41,12 @@ exports.push = function(){
 		return [require('./Backends/' + backend).PushFiles(jamPath,digests),digests.length,jamPath];
 	})
 	.spread(function(failedObjects,numberOfObjects,jamPath){
-		console.log('\nPusheded',numberOfObjects - failedObjects.length,'objects.');
+		console.log('\nPushed',numberOfObjects - failedObjects.length,'objects.');
 		if(failedObjects.length !== 0){
-			console.error('Could not push',failedObjects.length,'objects.');
+			console.error('/!\\ Could not push',failedObjects.length,'objects.');
 		}
 		fs.writeFileSync(path.join(jamPath,constants.ToSyncJam),failedObjects.join('\n'));
-		return exports.restoreFiles();
+		return When(true);
 	})
 	.then(function(res){
 		console.log('Done.');

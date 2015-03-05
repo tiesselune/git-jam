@@ -37,6 +37,13 @@ exports.dotJamConfig = function(param,value){
 			setDotJamJSON(dotJamJSON);
 		}
 	});
+};
+
+exports.jamConfig = function(param){
+	return exports.gitJamConfig(param)
+	.catch(function(err){
+		return exports.dotJamConfig(param);
+	});
 }
 
 exports.lsFiles = function(){
