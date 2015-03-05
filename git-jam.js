@@ -10,7 +10,7 @@ var filters = require('./modules/filters.js');
 var pullpush = require('./modules/pullpush.js');
 var constants = require('./modules/constants.json');
 
-var usage = 'Usage : git-jam [init|filter <extension>|push|pull|config <property> [<value>]]';
+var usage = 'Usage : git-jam (init|filter <extension>|push|pull|config [-g] <property> [<value>])';
 
 function main(args){
 	if(args.length === 0){
@@ -143,6 +143,11 @@ function jamInit(){
 	});
 }
 
+var args = process.argv;
+for(var i = 0;i <args.length;i++){
+	if(args[i].indexOf('git-jam') >= 0){
+		break;
+	}
+}
 
-
-main(process.argv.slice(2));
+main(args.slice(i + 1));
