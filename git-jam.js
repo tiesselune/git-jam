@@ -134,10 +134,7 @@ function jamInit(){
 		else if(!fs.existsSync(jamPath)){
 			fs.mkdirSync(jamPath);
 		}
-		return [pullpush.getCheckedOutJamFiles()
-		.catch(function(err){
-			return [[],jamPath];
-		}),jamPath];
+		return [pullpush.getCheckedOutJamFiles(),jamPath];
 	})
 	.spread(function(digests,jamPath){
 		fs.writeFileSync(path.join(jamPath,constants.MissingJam),digests.join('\n'));

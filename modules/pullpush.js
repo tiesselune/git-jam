@@ -10,19 +10,22 @@ exports.pull = function(){
 	.spread(function(back,jamPath){
 		var backend = back? back : "sftp";
 		var digests = fs.readFileSync(path.join(jamPath,constants.MissingJam),'utf-8').split('\n');
-		console.log('Preparing to pull',digests.length,'objects.');
-		return [require('./Backends/' + backend).PullObjects(jamPath,digests),digests.length,jamPath];
+		if(digests[digests.length - 1] == ""){
+			digests = digests.slice(0, digests.length - 1);
+		}
+		console.log('Preparing to pull',digests.length,'object(s).');
+		return [require('./Backends/' + backend).PullFiles(jamPath,digests),digests.length,jamPath];
 	})
 	.spread(function(failedObjects,numberOfObjects,jamPath){
-		console.log('\nPulled',numberOfObjects - failedObjects.length,'objects.');
+		console.log('\nPulled',numberOfObjects - failedObjects.length,'object(s).');
 		if(failedObjects.length !== 0){
-			console.error('/!\\ Could not pull',failedObjects.length,'objects.');
+			console.error('/!\\ Could not pull',failedObjects.length,'object(s).');
 		}
 		fs.writeFileSync(path.join(jamPath,constants.MissingJam),failedObjects.join('\n'));
 		return exports.restoreFiles();
 	})
 	.then(function(res){
-		console.log('Done.');
+		console.log('\nDone.');
 	})
 	.catch(function(err){
 		console.error(err.message);
@@ -37,19 +40,19 @@ exports.push = function(){
 		if(digests[digests.length - 1] == ""){
 			digests = digests.slice(0, digests.length - 1);
 		}
-		console.log('Preparing to push',digests.length,'objects.');
+		console.log('Preparing to push',digests.length,'object(s).');
 		return [require('./Backends/' + backend).PushFiles(jamPath,digests),digests.length,jamPath];
 	})
 	.spread(function(failedObjects,numberOfObjects,jamPath){
-		console.log('\nPushed',numberOfObjects - failedObjects.length,'objects.');
+		console.log('\nPushed',numberOfObjects - failedObjects.length,'object(s).');
 		if(failedObjects.length !== 0){
-			console.error('/!\\ Could not push',failedObjects.length,'objects.');
+			console.error('/!\\ Could not push',failedObjects.length,'object(s).');
 		}
 		fs.writeFileSync(path.join(jamPath,constants.ToSyncJam),failedObjects.join('\n'));
 		return When(true);
 	})
 	.then(function(res){
-		console.log('Done.');
+		console.log('\nDone.');
 	})
 	.catch(function(err){
 		console.error(err.message);
@@ -63,7 +66,7 @@ exports.restoreFiles = function(){
 		return [gitUtils.filteredFiles(files),gitUtils.getJamPath()];
 	})
 	.spread(function(files,jamPath){
-		console.log('Considering',files.length,'jam files.');
+		console.log('Considering',files.length,'jam file(s).');
 		var skippedFiles = [];
 		files.forEach(function(file){
 			if(jamFile.mightBeJam(file)){
@@ -71,7 +74,7 @@ exports.restoreFiles = function(){
 				var jamFilePath = path.join(jamPath,digest);
 				if(digest != "" && fs.existsSync(jamFilePath)){
 					console.log('Restoring',file,":",digest)
-					fs.writeFileSync(file,fs.readSync(jamFilePath));
+					fs.writeFileSync(file,fs.readFileSync(jamFilePath));
 				}
 				else if(digest != ""){
 					console.error('/!\\ Could not restore',file,digest);
@@ -80,7 +83,7 @@ exports.restoreFiles = function(){
 			}
 		});
 		if(skippedFiles.length > 0){
-			console.error("/!\\ Could not restore",skippedFiles.length,"files.");
+			console.error("/!\\ Could not restore",skippedFiles.length,"file(s).");
 		}
 		return skippedFiles;
 	});
@@ -99,5 +102,9 @@ exports.getCheckedOutJamFiles = function(){
 			}
 		});
 		return digests;
+	})
+	.catch(function(err){
+		console.log(err.stack);
+		return [];
 	});
 };

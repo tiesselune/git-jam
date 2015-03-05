@@ -75,7 +75,6 @@ exports.isAlreadyMissing = function(digest){
 	.then(function(jamPath){
 		var missingJamPath = path.join(jamPath,constants.MissingJam)
 		if(!fs.existsSync(missingJamPath)){
-			console.log('HEY');
 			return false;
 		}
 		var missingJam = fs.readFileSync(missingJamPath,'utf8');

@@ -21,12 +21,12 @@ exports.PushFiles = function(jamPath,digests){
 				return sftp.fastPut(path.join(jamPath,digest),path.join(remotePath,digest),{});
 			})
 			.then(function(){
-				console.log('Pushed',digest,'.');
+				console.log('Pushed',digest +'.');
 				return When(true);
 			})
 			.catch(function(err){
 				failedDigestList.push(digest);
-				console.error("Error on",digest,".",err.stack);
+				console.error("Error on",digest + ".",err.message);
 			});
 		});
 		return promiseChain;
@@ -36,7 +36,10 @@ exports.PushFiles = function(jamPath,digests){
 		return When(failedDigestList);
 	})
 	.catch(function(err){
-		sshConn.end();
+		try{
+			sshConn.end();
+		}catch(err){
+		}
 		throw err;
 	});
 };
@@ -48,7 +51,7 @@ exports.PullFiles = function(jamPath,digests){
 	.then(function(){
 		return [sshConn.sftp(),gitUtils.jamConfig('sftp.path')];
 	})
-	.then(function(sftp,remotePath){
+	.spread(function(sftp,remotePath){
 		if(!remotePath){
 			throw new Error("Please specify a remote path :\n\tgit jam config -g sftp.path <path>");
 		}
@@ -58,12 +61,12 @@ exports.PullFiles = function(jamPath,digests){
 				return sftp.fastGet(path.join(remotePath,digest),path.join(jamPath,digest),{});
 			})
 			.then(function(){
-				console.log('Pulled',digest,'.');
+				console.log('Pulled',digest + '.');
 				return When(true);
 			})
 			.catch(function(err){
 				failedDigestList.push(digest);
-				console.error("Error on",digest,".",err.message);
+				console.error("Error on",digest + ".",err.message);
 			});
 		});
 		return promiseChain;
@@ -73,7 +76,10 @@ exports.PullFiles = function(jamPath,digests){
 		return When(failedDigestList);
 	})
 	.catch(function(err){
-		sshConn.end();
+		try{
+			sshConn.end();
+		}catch(err){
+		}
 		throw err;
 	});
 };

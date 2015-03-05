@@ -23,7 +23,10 @@ exports.config = function(param,value){
 };
 
 exports.gitJamConfig = function(param,value){
-	return exports.config('jam.' + param,value);
+	return exports.config('jam.' + param,value)
+	.catch(function(err){
+		return When(undefined);
+	});
 };
 
 exports.dotJamConfig = function(param,value){
@@ -41,8 +44,11 @@ exports.dotJamConfig = function(param,value){
 
 exports.jamConfig = function(param){
 	return exports.gitJamConfig(param)
-	.catch(function(err){
-		return exports.dotJamConfig(param);
+	.then(function(value){
+		if(value === undefined){
+			return exports.dotJamConfig(param);
+		}
+		return When(value);
 	});
 }
 
