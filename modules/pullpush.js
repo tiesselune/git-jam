@@ -104,7 +104,6 @@ exports.getCheckedOutJamFiles = function(){
 		return digests;
 	})
 	.catch(function(err){
-		console.log(err.stack);
 		return [];
 	});
 };
