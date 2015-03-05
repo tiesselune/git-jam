@@ -102,7 +102,7 @@ If you want to implement your own, you'd have to create a new node module in `mo
     exports.PullFiles(<string> jamPath, <string array> digests)
 
  * PushFiles must save the files (enumerated in the `digest` array) found under the `jamPath` directory to a remote location and return a promise to an array of the digests that could not be pushed.
- * PullFiles must get the files (enumerated in the `digest` array) from the remote location and save them under the `jamPath` directory return an promise to an array of the digests that could not be pulled.
+ * PullFiles must get the files (enumerated in the `digest` array) from the remote location and save them under the `jamPath` directory and return an promise to an array of the digests that could not be pulled.
 
 Then, just set your config to the name of your backend using `git jam config`.
 
