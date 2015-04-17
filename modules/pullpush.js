@@ -21,14 +21,10 @@ exports.pull = function(){
 		if(failedObjects.length !== 0){
 			console.error('/!\\ Could not pull',failedObjects.length,'object(s).');
 		}
-		fs.writeFileSync(path.join(jamPath,constants.MissingJam),failedObjects.join('\n'));
 		return exports.restoreFiles();
 	})
 	.then(function(res){
 		console.log('\nDone.');
-	})
-	.catch(function(err){
-		console.error(err.message);
 	});
 };
 
@@ -53,9 +49,6 @@ exports.push = function(){
 	})
 	.then(function(res){
 		console.log('\nDone.');
-	})
-	.catch(function(err){
-		console.error(err.message);
 	});
 };
 
@@ -84,6 +77,8 @@ exports.restoreFiles = function(){
 		});
 		if(skippedFiles.length > 0){
 			console.error("/!\\ Could not restore",skippedFiles.length,"file(s).");
+			var digestArray = skippedFiles.map(function(obj){return obj.Digest;});
+			fs.writeFileSync(path.join(jamPath,constants.MissingJam),digestArray.join('\n'));
 		}
 		return skippedFiles;
 	});
