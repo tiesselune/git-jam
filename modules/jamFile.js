@@ -6,7 +6,7 @@ var gitUtils = require('./gitUtils.js');
 var path = require('path');
 
 exports.isJamData = function(data){
-	if(!(data instanceof Buffer) || data.length >= 54 || data.length < 52){
+	if(!(data instanceof Buffer) || data.length >= 75 || data.length < 52){
 		return false;
 	}
 	var string = new Buffer(data).toString();
@@ -38,11 +38,11 @@ exports.isJam = function(arg){
 
 exports.mightBeJam = function(path){
 	var size = fs.statSync(path).size;
-	return size == 52 || size == 53;
+	return size == 52 || size == 53 || size == 74;
 };
 
 exports.getDigestFromJamData = function(data){
-	if(!(data instanceof Buffer) || data.length >= 54 || data.length < 52){
+	if(!(data instanceof Buffer) || data.length >= 75 || data.length < 52){
 		return "";
 	}
 	if(exports.isJam(data)){
