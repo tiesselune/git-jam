@@ -58,27 +58,43 @@ exports.jamConfig = function(param){
 exports.lsFiles = function(){
 	return exec('git ls-tree --name-only --full-tree -z -r HEAD')
 	.then(function(res){
-		return res.split('\0');
+		var escaped = res.replace(/\s/g,"\\ ");
+		return escaped.split('\0');
 	});
 };
 
 exports.filteredFiles = function(files){
-	return exec('git check-attr -z filter ' + files.join(' '))
-	.then(function(res){
-		var files = [];
-		var words = res.split('\0');
-		for(var i = 0; i< words.length;i += 3){
-			if(words[i+2] == 'jam'){
-				files.push(words[i]);
-			}
-		}
-		return files;
+	var i,j,chunk = 30;
+	var fileChunks = [];
+	for (i=0,j=files.length; i<j; i+=chunk) {
+		fileChunks.push(files.slice(i,i+chunk));
+	}
+	var promises = fileChunks.map(function(chunk){
+			return exec('git check-attr -z filter ' + chunk.join(' '))
+			.then(function(res){
+				var finalFiles = [];
+				var words = res.split('\0');
+				for(var k = 0; k< words.length;k += 3){
+					if(words[k+2] == 'jam'){
+						finalFiles.push(words[k]);
+					}
+				}
+				return finalFiles;
+			});
+		});
+	return When.all(promises)
+	.then(function(array){
+		var result = [];
+		array.forEach(function(filteredFilesChunk){
+			result = result.concat(filteredFilesChunk);
+		});
+		return result;
 	});
 };
 
 function exec(command){
 	var defered = When.defer();
-	childProcess.exec(command,function(err,stdout){
+	childProcess.exec(command,{maxBuffer: 1024 * 1024},function(err,stdout){
 		if(err){
 			defered.reject(new Error(err));
 		}else{
