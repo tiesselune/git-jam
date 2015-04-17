@@ -77,9 +77,9 @@ exports.restoreFiles = function(){
 		});
 		if(skippedFiles.length > 0){
 			console.error("/!\\ Could not restore",skippedFiles.length,"file(s).");
-			var digestArray = skippedFiles.map(function(obj){return obj.Digest;});
-			fs.writeFileSync(path.join(jamPath,constants.MissingJam),digestArray.join('\n'));
 		}
+		var digestArray = skippedFiles.map(function(obj){return obj.Digest;});
+		fs.writeFileSync(path.join(jamPath,constants.MissingJam),digestArray.join('\n'));
 		return skippedFiles;
 	});
 };
