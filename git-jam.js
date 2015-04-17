@@ -15,31 +15,43 @@ var usage = 'Usage : git-jam (init|filter <extension>|push|pull|config [-g] <pro
 function main(args){
 	if(args.length === 0){
 		console.log(usage);
-		return;
+		return ;
 	}
 	var remainingArgs = args.slice(1);
-	switch(args[0]){
-		case 'filter-smudge':
-			return jamFilterSmudge();
-		case 'filter-clean':
-			return jamFilterClean();
-		case 'init':
-			return jamInit();
-		case 'push':
-			return jamPush();
-		case 'pull':
-			return jamPull();
-		case 'restore':
-			return jamRestore();
-		case 'filter':
-			return addFilters(remainingArgs);
-		case 'config':
-			if(remainingArgs.length > 0){
-				return jamConfig(remainingArgs);
-			}
-		default :
-			console.log(usage);
-	}
+	return gitUtils.getJamPath()
+	.then(function(jamPath){
+		if((jamPath == "" || !fs.existsSync(jamPath)) && args[0] != "init"){
+			console.error("You are not in a jam repository.");
+			return 1;
+		}
+		switch(args[0]){
+			case 'filter-smudge':
+				return jamFilterSmudge();
+			case 'filter-clean':
+				return jamFilterClean();
+			case 'init':
+				return jamInit();
+			case 'push':
+				return jamPush();
+			case 'pull':
+				return jamPull();
+			case 'restore':
+				return jamRestore();
+			case 'filter':
+				return addFilters(remainingArgs);
+			case 'config':
+				if(remainingArgs.length > 0){
+					return jamConfig(remainingArgs);
+				}
+			default :
+				console.log(usage);
+		}
+	})
+	.catch(function(err){
+		console.error("The operation failed. Here is the stack trace of the error : ");
+		console.error(err.stack);
+	});
+
 }
 
 function jamFilterSmudge(){

@@ -14,6 +14,9 @@ exports.getJamPath = function(){
 		.then(function(res){
 			var jamPath = path.join(path.join.apply(this,[ res[0] == "/" ? res[0] : ""].concat(res.trim().split('/'))),'jam');
 			return jamPath;
+		})
+		.catch(function(err){
+			return "";
 		});
 	}
 }
