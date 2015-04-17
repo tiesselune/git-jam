@@ -9,24 +9,24 @@ Yet another binary manager for git, largely inspired by git-fat, but aimed at be
     git clone https://github.com/tiesselune/git-jam.git
     cd git-jam
     sudo npm install -g
-    
+
     //Configuration
     git jam init
-    git jam filter ".png"
+    git jam filter "*.png"
     git jam config -g sftp.host myexamplehost.com
     git jam config -g sftp.path /share/DATA/GitJam/MyProject
     git jam config sftp.user j.tiesselune
     git jam config sftp.password ******
-    
+
     //Usage
     git add somefile.png
     git commit -m "Some commit message"
     git jam push
-    
+
     git checkout someOtherBranch
     git jam pull
-    
-    
+
+
 
 ##Why git-jam?
 
@@ -61,7 +61,7 @@ Then install it using npm:
 
 ##Usage
 
-> **Important Note : Under windows**, in the git bash environment, `git-jam` can't be invoked in the command-line using `git jam`. Until [this pull request](https://github.com/ForbesLindesay/cmd-shim/pull/4) is merged into `cmd-shim` used by npm, the dash in `git-jam` is mandatory to invoke `git-jam` commands. 
+> **Important Note : Under windows**, in the git bash environment, `git-jam` can't be invoked in the command-line using `git jam`. Until [this pull request](https://github.com/ForbesLindesay/cmd-shim/pull/4) is merged into `cmd-shim` used by npm, the dash in `git-jam` is mandatory to invoke `git-jam` commands.
 
 ###Configuration
 To enable git-jam, inside a git repo, run :
@@ -131,11 +131,11 @@ Once you defined your filters, you can add your files to the index the way you w
 But in order to have your files synchonised with your backend, you must invoke
 
     git jam push
-    
+
 When you checkout a branch, all filtered files will be text reprensentations of your files. Use
 
     git jam pull
-    
+
 to fetch and replace them with their actual content.
 
 ##What about other storage options?
