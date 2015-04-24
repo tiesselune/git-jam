@@ -58,8 +58,8 @@ exports.jamConfig = function(param){
 exports.lsFiles = function(){
 	return exec('git ls-tree --name-only --full-tree -z -r HEAD')
 	.then(function(res){
-		var escaped = res.replace(/\s/g,getEscapeCharacter() + " ");
-		return escaped.split('\0');
+		var files = res.split('\0');
+		return files.map(function(file){return '"' + file +'"';});
 	});
 };
 
@@ -154,8 +154,4 @@ function setDotJamJSON(object){
 		var dotJamPath = path.resolve(jamPath,'../../.jamconfig');
 		fs.writeFileSync(dotJamPath,JSON.stringify(object,null,'\t'));
 	});
-}
-
-function getEscapeCharacter() {
-	return (process.platform == 'win32') ? '^' : '\\';
 }
