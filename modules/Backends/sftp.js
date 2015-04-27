@@ -9,16 +9,20 @@ exports.PushFiles = function(jamPath,digests){
 	var sshConn = new exports.SSHConnection();
 	return sshConn.connectUsingCredentials()
 	.then(function(){
-		return [sshConn.sftp(),gitUtils.jamConfig('sftp.path')];
+		return [sshConn.sftp(),gitUtils.jamConfig('sftp.path'),gitUtils.jamConfig('sftp.system')];
 	})
-	.spread(function(sftp,remotePath){
+	.spread(function(sftp,remotePath,remoteSystem){
+		var pathSeparator = "/";
+		if(remoteSystem !== undefined && ["win32","windows"].indexOf(remoteSystem.toLowerCase()) >= 0){
+			pathSeparator = "\\";
+		}
 		if(!remotePath){
 			throw new Error("Please specify a remote path :\n\tgit jam config -g sftp.path <path>");
 		}
 		var promiseChain = When(true);
 		digests.forEach(function(digest){
 			promiseChain = promiseChain.then(function(){
-				return sftp.fastPut(path.join(jamPath,digest),path.join(remotePath,digest),{});
+				return sftp.fastPut(jamPath + pathSeparator + digest,path.join(remotePath,digest),{});
 			})
 			.then(function(){
 				console.log('Pushed',digest +'.');
@@ -49,16 +53,20 @@ exports.PullFiles = function(jamPath,digests){
 	var sshConn = new exports.SSHConnection();
 	return sshConn.connectUsingCredentials()
 	.then(function(){
-		return [sshConn.sftp(),gitUtils.jamConfig('sftp.path')];
+		return [sshConn.sftp(),gitUtils.jamConfig('sftp.path'),gitUtils.jamConfig('sftp.system')];
 	})
-	.spread(function(sftp,remotePath){
+	.spread(function(sftp,remotePath,remoteSystem){
+		var pathSeparator = "/";
+		if(remoteSystem !== undefined && ["win32","windows"].indexOf(remoteSystem.toLowerCase()) >= 0){
+			pathSeparator = "\\";
+		}
 		if(!remotePath){
-			throw new Error("Please specify a remote path :\n\tgit jam config -g sftp.path <path>");
+			throw new Error("Please specify a remote path :\n\tgit jam config -g sftp.path \"<path>\"");
 		}
 		var promiseChain = When(true);
 		digests.forEach(function(digest){
 			promiseChain = promiseChain.then(function(){
-				return sftp.fastGet(path.join(remotePath,digest),path.join(jamPath,digest),{});
+				return sftp.fastGet(remotePath + pathSeparator + digest,path.join(jamPath,digest),{});
 			})
 			.then(function(){
 				console.log('Pulled',digest + '.');

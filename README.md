@@ -13,10 +13,10 @@ Yet another binary manager for git, largely inspired by git-fat, but aimed at be
     //Configuration
     git jam init
     git jam filter "*.png"
-    git jam config -g sftp.host myexamplehost.com
-    git jam config -g sftp.path /share/DATA/GitJam/MyProject
-    git jam config sftp.user j.tiesselune
-    git jam config sftp.password ******
+    git jam config -g sftp.host "myexamplehost.com"
+    git jam config -g sftp.path "/share/DATA/GitJam/MyProject"
+    git jam config sftp.user "j.tiesselune"
+    git jam config sftp.password "******"
 
     //Usage
     git add somefile.png
@@ -112,14 +112,16 @@ The SFTP backend needs 3 inputs in order to work.
 
 You can setup those values that way:
 
-    git jam config -g sftp.host myexamplehost.com
-    git jam config -g sftp.path /share/DATA/GitJam/MyProject
-    git jam config sftp.user j.tiesselune
-    git jam config sftp.password ******
+    git jam config -g sftp.host "myexamplehost.com"
+    git jam config -g sftp.path "/share/DATA/GitJam/MyProject"
+    git jam config sftp.user "j.tiesselune"
+    git jam config sftp.password "******"
 
 If you don't provide your password (*and you really should not*), your ssh keypair will be used (`id_rsa` & `id_rsa.pub`).
 
 > The `-g` option is optional. Usually, the host and path are the same for every user of your repo, so you should probably use it for that. But you probably don't want everyone in your team sharing your username.
+
+> **Under Windows**, Mysysgit might transform your path to `C:\\something` which obviously won't work on linux remote hosts. You can always change it directly in the `.jamconfig` file.
 
 ###Jam file workflow
 
