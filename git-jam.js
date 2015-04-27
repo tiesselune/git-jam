@@ -9,6 +9,7 @@ var gitUtils = require('./modules/gitUtils.js');
 var filters = require('./modules/filters.js');
 var pullpush = require('./modules/pullpush.js');
 var constants = require('./modules/constants.json');
+var spawn = require('child_process').spawn;
 
 var usage = 'Usage : git-jam (init|filter <extension>|push|pull|config [-g] <property> [<value>]|restore)';
 
@@ -30,7 +31,7 @@ function main(args){
 			case 'filter-clean':
 				return jamFilterClean();
 			case 'init':
-				return jamInit();
+				return jamInit(remainingArgs);
 			case 'push':
 				return jamPush();
 			case 'pull':
@@ -63,15 +64,24 @@ function jamFilterClean(){
 }
 
 function jamPush(){
-	pullpush.push();
+	return pullpush.push()
+	.catch(function(err){
+		console.log(err.message);
+	});
 }
 
 function jamPull(){
-	pullpush.pull();
+	return pullpush.pull()
+	.catch(function(err){
+		console.log(err.message);
+	});
 }
 
 function jamRestore(){
-	pullpush.restoreFiles();
+	return pullpush.restoreFiles()
+	.catch(function(err){
+		console.log(err.message);
+	});
 }
 
 function jamConfig(args){
@@ -106,7 +116,7 @@ function addFilters(args){
 }
 
 function addFilter(filter){
-	gitUtils.getJamPath()
+	return gitUtils.getJamPath()
 	.then(function(jamPath){
 		var attributesPath = path.resolve(jamPath,'../../.gitattributes');
 		if(!fs.existsSync(attributesPath)){
@@ -128,7 +138,17 @@ function addFilter(filter){
 	});
 }
 
-function jamInit(){
+function replaceFatFilters(jamPath){
+	var attributesPath = path.resolve(jamPath,'../../.gitattributes');
+	if(!fs.existsSync(attributesPath)){
+		fs.writeFileSync(attributesPath,'');
+	}
+	var attributes = fs.readFileSync(attributesPath,'utf8');
+	var newAttributes = attributes.replace(/fat -crlf/g,"jam -crlf");
+	fs.writeFileSync(attributesPath,newAttributes);
+}
+
+function jamInit(args){
 	//Make git config entries
 	return gitUtils.config('filter.jam.clean','git-jam filter-clean')
 	.then(function(){
@@ -138,20 +158,35 @@ function jamInit(){
 		return gitUtils.getJamPath();
 	})
 	.then(function(jamPath){
+		var importFat = args.length > 0 && (args.indexOf('--fat-import') >= 0 || args.indexOf('-f') >=0 );
 		//if it is a fat repo, move the fat content to jam.
 		var fatPath = path.resolve(jamPath,'../fat');
-		if(fs.existsSync(fatPath)){
+		if(importFat && fs.existsSync(fatPath)){
 			fs.renameSync(fatPath,jamPath);
+			var objectsPath = path.join(jamPath,"objects");
+			if(fs.existsSync(objectsPath)){
+				moveAllFiles(objectsPath,jamPath);
+			}
 		}
 		else if(!fs.existsSync(jamPath)){
 			fs.mkdirSync(jamPath);
 		}
-		return [pullpush.getCheckedOutJamFiles(),jamPath];
+		if(importFat){
+			 replaceFatFilters(jamPath);
+		}
+		return [pullpush.getCheckedOutJamFiles(jamPath),jamPath];
 	})
 	.spread(function(digests,jamPath){
 		fs.writeFileSync(path.join(jamPath,constants.MissingJam),digests.join('\n'));
 		fs.writeFileSync(path.join(jamPath,constants.ToSyncJam),'');
 		return When(true);
+	});
+}
+
+function moveAllFiles(src,dest){
+	var files = fs.readdirSync(src);
+	files.forEach(function(file){
+		fs.renameSync(path.join(src,file), path.join(dest,file));
 	});
 }
 
