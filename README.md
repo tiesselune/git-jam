@@ -114,6 +114,10 @@ You can setup those values that way:
 
     git jam config -g sftp.host "myexamplehost.com"
     git jam config -g sftp.path "/share/DATA/GitJam/MyProject"
+
+    //If your sftp *host* is under Windows. Linux is supported by default.
+    git jam config -g sftp.system "win32"
+
     git jam config sftp.user "j.tiesselune"
     git jam config sftp.password "******"
 
