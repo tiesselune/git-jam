@@ -68,6 +68,10 @@ To enable git-jam, inside a git repo, run :
 
     git jam init
 
+If your git repo is a git-fat enabled repo, use the `-f` or `--fat-import` option to transfer filters and objects to the jam system.
+
+    git jam init -f
+
 > It does not matter whether you cloned your git repository from an existing git-jam enabled repo or just created a new one. You should call `git jam init` each time you clone a repo for which you wish git jam will work.
 
 Then define some files to be managed by `git-jam`.
