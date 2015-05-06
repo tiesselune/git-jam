@@ -1,6 +1,8 @@
 git-jam
 =======
 
+[![Join the chat at https://gitter.im/tiesselune/git-jam](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/tiesselune/git-jam?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Yet another binary manager for git, largely inspired by git-fat, but aimed at being more cross-platform
 
 ##TL;DR
