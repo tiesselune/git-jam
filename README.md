@@ -48,6 +48,12 @@ Rsync won't be a dependency anymore, as I have chosen to copy files directly via
 
 ## Installing
 
+### Using npm
+
+Use NPM to install git-jam:
+
+    npm install -g git-jam
+
 ### By cloning
 
 Clone the project:
