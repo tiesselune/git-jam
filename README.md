@@ -3,7 +3,7 @@ git-jam
 
 Yet another binary manager for git, largely inspired by git-fat, but aimed at being more cross-platform
 
-##TL;DR
+## TL;DR
 
     //Installation
     git clone https://github.com/tiesselune/git-jam.git
@@ -28,7 +28,7 @@ Yet another binary manager for git, largely inspired by git-fat, but aimed at be
 
 
 
-##Why git-jam?
+## Why git-jam?
 
 `git-jam` is aimed at giving an alternative to [git-fat](https://github.com/jedbrown/git-fat), but using the same mechanics.
 
@@ -38,7 +38,7 @@ The main problems I encountered in `git-fat` (although it's a great tool) are:
  * Rsync. Though rsync is great, we had to install cygwin to use it under windows when a simple SCP would have suited our needs.
  * Speed. Some things are being merged into `git-fat` to increase its speed and usability. But as our project grew, `git fat` operations grew slower and slower.
 
-##What's new?
+## What's new?
 
 **The first concern** is cross-platform compatibility to ease configuration under windows and remove cygwin as a dependency (which forced to have two environments set up, one for use with windows GUI versionning tools and the other being rsync-enabled cygwin environment). Especially when cygwin and windows versions of git had to be set up differently.
 
@@ -46,9 +46,9 @@ For that purpose, I've chosen to develop it with **Javascript and Node.js**, as 
 
 Rsync won't be a dependency anymore, as I have chosen to copy files directly via SSH and track changes with a file-based system.
 
-##Installing
+## Installing
 
-###By cloning
+### By cloning
 
 Clone the project:
 
@@ -59,11 +59,11 @@ Then install it using npm:
     cd git-jam
     sudo npm install -g
 
-##Usage
+## Usage
 
 > **Important Note : Under windows**, in the git bash environment, `git-jam` can't be invoked in the command-line using `git jam`. Until [this pull request](https://github.com/ForbesLindesay/cmd-shim/pull/4) is merged into `cmd-shim` used by npm, the dash in `git-jam` is mandatory to invoke `git-jam` commands.
 
-###Configuration
+### Configuration
 To enable git-jam, inside a git repo, run :
 
     git jam init
@@ -86,7 +86,7 @@ Then define some files to be managed by `git-jam`.
 
 You can now configure your backend.
 
-###Setting a configuration key-value pair.
+### Setting a configuration key-value pair.
 
 There are two places for configuration in git-jam.
 
@@ -105,7 +105,9 @@ To save a value to the normal git config, use:
 
 > If a key exists in both the `.jamconfig` file and in the local git config, local git config will be preferred. That way you can locally override options in `.jamconfig`.
 
-###SFTP
+### SFTP
+Currently, this is the default backend for `git-jam`.
+
 The SFTP backend needs 3 inputs in order to work.
 * Your ssh user name;
 * The host on which your jam files will be saved *Ex : myexamplehost.com*
@@ -131,7 +133,23 @@ If you don't provide your password (*and you really should not*), your ssh keypa
 
 > **Under Windows**, Mysysgit might transform your path to `C:\\something` which obviously won't work on linux remote hosts. You can always change it directly in the `.jamconfig` file.
 
-###Jam file workflow
+### Amazon S3
+
+The **Amazon S3** backend can be enabled by running
+
+    git jam config backend s3
+
+in a `git-jam` enabled git repository.
+
+You'll have to configure 5 variables in order for it to work.
+
+    git jam config s3.AccessKeyID <someKey> //with your access key ID from AWS IAM.
+    git jam config s3.SecretAccessKey <someKey> //with your secret key from AWS IAM
+    git jam config -g s3.Region <bucket region> // with the region of an existing bucket
+    git jam config -g s3.Bucket <bucket name> // With an existing S3 bucket name
+    git jam config -g s3.Path <path inside bucket> // A path if you want to target a specific directory in the bucket.
+
+### Jam file workflow
 
 Once you defined your filters, you can add your files to the index the way you would do it normally:
 
@@ -148,7 +166,7 @@ When you checkout a branch, all filtered files will be text reprensentations of 
 
 to fetch and replace them with their actual content.
 
-##What about other storage options?
+## What about other storage options?
 
 Other storage options are to be considered, but are not my priority for the time being. Rsync should be fairly easy to implement, for instance, to have a fully git-fat compatible repository.
 
@@ -162,7 +180,7 @@ If you want to implement your own, you'd have to create a new node module in `mo
 
 Then, just set your config to the name of your backend using `git jam config`.
 
-###Example
+### Example
 
 Let's say you want a rsync backend.
 
@@ -174,6 +192,6 @@ Let's say you want a rsync backend.
 
 > Inside the PullFiles and PushFiles functions, you can use the jam config to configure your rsync backend. To access a jam config value, use `require('../gitUtils.js').jamConfig(key)`.
 
-##License
+## License
 
 `git-jam` is licensed under the MIT license.
