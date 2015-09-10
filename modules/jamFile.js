@@ -38,7 +38,7 @@ exports.isJam = function(arg){
 
 exports.mightBeJam = function(path){
 	var size = fs.statSync(path).size;
-	return size == 52 || size == 53 || size == 74;
+	return size == 52 || size == 53 || size == 54 || size == 74;
 };
 
 exports.getDigestFromJamData = function(data){
