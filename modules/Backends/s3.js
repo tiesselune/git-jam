@@ -54,7 +54,7 @@ exports.PullFiles = function(jamPath,digests){
 			throw new Error("Please specify a base path :\n\tgit jam config -g s3.Path <path>");
 		}
 		var promiseChain = When(true);
-        var s3 = new S3(bucketName);
+        var s3 = new S3(bucket);
         var cleanBasePath = basePath[basePath.length - 1] == "/" ?  basePath : basePath + "/";
 		digests.forEach(function(digest){
 			promiseChain = promiseChain.then(function(){
