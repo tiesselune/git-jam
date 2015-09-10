@@ -20,21 +20,21 @@
       "web": "http://www.tiesselune.com"
     }
   ],
-  "bin":{
-      "git-jam" : "git-jam.js"
+  "bin": {
+    "git-jam": "git-jam.js"
   },
   "dependencies": {
+    "aws-sdk": "^2.1.50",
     "ssh2": "^0.3.6",
     "when": "3.5.x"
   },
   "bugs": {
     "url": "https://github.com/tiesselune/git-jam/issues"
   },
-  "repository":
-    {
-      "type": "git",
-      "url": "https://github.com/tiesselune/git-jam.git"
-    },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tiesselune/git-jam.git"
+  },
   "licenses": [
     {
       "name": "MIT",
