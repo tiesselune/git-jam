@@ -92,6 +92,33 @@ exports.filteredFiles = function(files){
 	});
 };
 
+exports.setUpHooks = function(){
+	var bang = "#!/bin/sh\n\n";
+	var exit = "exit 0";
+	var prePush = bang + "git-jam push\n\n" + exit;
+	var postCheckout = bang + "git-jam pull\n\n" + exit;
+	return exports.getJamPath()
+	.then(function(jamPath){
+		var hooks = path.resolve(jamPath,"..","hooks");
+		var postCheckoutPath = path.join(hooks,"post-checkout");
+		var prePushPath = path.join(hooks,"pre-push");
+		if(!fs.existsSync(postCheckoutPath)){
+			fs.writeFileSync(postCheckoutPath,postCheckout);
+			console.log('Successfully created post-checkout hook.')
+		}
+		else{
+			console.error('A post-checkout hook already exists. Post-checkout has not been set-up.')
+		}
+		if(!fs.existsSync(prePushPath)){
+			fs.writeFileSync(prePushPath,prePush);
+			console.log('Successfully created pre-push hook.')
+		}
+		else{
+			console.error('A pre-push hook already exists. Pre-push has not been set-up.')
+		}
+	});
+}
+
 function exec(command){
 	var defered = When.defer();
 	childProcess.exec(command,{maxBuffer: 1024 * 1024},function(err,stdout){

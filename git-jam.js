@@ -11,7 +11,7 @@ var pullpush = require('./modules/pullpush.js');
 var constants = require('./modules/constants.json');
 var spawn = require('child_process').spawn;
 
-var usage = 'Usage : git-jam (init|filter <extension>|push|pull|config [-g] <property> [<value>]|restore)';
+var usage = 'Usage : git-jam (init|filter <extension>|push|pull|config [-g] <property> [<value>]|restore|setup-hooks)';
 
 function main(args){
 	if(args.length === 0){
@@ -44,6 +44,8 @@ function main(args){
 				if(remainingArgs.length > 0){
 					return jamConfig(remainingArgs);
 				}
+			case 'setup-hooks':
+				return gitUtils.setUpHooks();
 			default :
 				console.log(usage);
 		}

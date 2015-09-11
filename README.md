@@ -162,7 +162,14 @@ Once you defined your filters, you can add your files to the index the way you w
     git add somefile.png
     git commit -m "My commit"
 
-But in order to have your files synchonised with your backend, you must invoke
+There are two ways of synchronizing files with your backend:
+
+    1. Manual push and pull
+    2. Git-hooks
+
+#### Manual push and pull
+
+In order to have your files synchonised with your backend, you must invoke
 
     git jam push
 
@@ -171,6 +178,18 @@ When you checkout a branch, all filtered files will be text reprensentations of 
     git jam pull
 
 to fetch and replace them with their actual content.
+
+#### Git hooks.
+
+Git provides `pre-push` and `post-checkout` hooks to invoke custom operations.
+
+`git-jam` comes with a simple way to setup those hooks to automatically invoke `git jam push` and `git-jam pull` on those operations.
+
+Just run
+
+    git-jam setup-hooks
+
+in your repository's folder and those hooks will be installed, automatically invoking `git-jam push` and `git-jam pull` on your behalf when doing push and checkout operations in git.
 
 ## What about other storage options?
 
