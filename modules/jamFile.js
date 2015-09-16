@@ -65,7 +65,7 @@ exports.getDigestFromJam = function(arg){
 		return exports.getDigestFromJamPath(arg);
 	}
 	if(arg instanceof Buffer){
-		return exports.getDigestFromJamData(data);
+		return exports.getDigestFromJamData(arg);
 	}
 	return "";
 }
