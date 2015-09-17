@@ -198,7 +198,7 @@ in your repository's folder and those hooks will be installed, automatically inv
 
 By default `gitolite` does not support sftp, which `git-jam` uses to move the binary files to and from the server. To add sftp support to gitolite you need to do the following things.
 
-1. In your `.gitolite.rc` under the `ENABLE` section is a `COMMANDS` block. Add `'sftp-server',` to it (don't forget the comma):
+* In your `.gitolite.rc` under the `ENABLE` section is a `COMMANDS` block. Add `'sftp-server',` to it (don't forget the comma):
 
 
 ```
@@ -219,7 +219,7 @@ ENABLE => [
         'sftp-server',
 ```
 
-2. Find the commented out value for `LOCAL_CODE` and enable it for `$ENV{HOME}/local`:
+* Find the commented out value for `LOCAL_CODE` and enable it for `$ENV{HOME}/local`:
 
 ```
     # suggested locations for site-local gitolite code (see cust.html)
@@ -229,11 +229,11 @@ ENABLE => [
 
 ```
 
-3. Create the actual command executable. In your `gitolite3` home directory create a subdirectory `local` with a subdirectory `commands`. In there create a link to the OpenSSH `sftp-server` executable, probably something like this:
+* Create the actual command executable. In your `gitolite3` home directory create a subdirectory `local` with a subdirectory `commands`. In there create a link to the OpenSSH `sftp-server` executable, probably something like this:
 
 `ln -sf /usr/libexec/openssh/sftp-server local/commands/sftp-server`
 
-4. Unfortunately the way OpenSSH handles sftp and the way gitolite expects local commands don't work well together. To make it work it is necessary to change the OpenSSH configuration. In your `/etc/ssh/sshd_config` change the `Subsystem sftp /usr/libexec/openssh/sftp-server` line to 
+* Unfortunately the way OpenSSH handles sftp and the way gitolite expects local commands don't work well together. To make it work it is necessary to change the OpenSSH configuration. In your `/etc/ssh/sshd_config` change the `Subsystem sftp /usr/libexec/openssh/sftp-server` line to 
 
 `Subsystem	sftp	sftp-server`
 
@@ -241,7 +241,7 @@ The problem with this is that it disables `sftp` support for other users. If tha
 
 **Warning!** Every change to `sshd_config` can have security consequences! Don't use this on a server where you have to worry about your users trying to do bad things, or on a public facing server if you're not sure what it does!
 
-5. Copy the `gitolite` SSH key to `${HOME}/.ssh/id_rsa` for `git-jam` to pick it up correctly.
+* Copy the `gitolite` SSH key to `${HOME}/.ssh/id_rsa` for `git-jam` to pick it up correctly.
 
 That should be it. Enjoy!
 
