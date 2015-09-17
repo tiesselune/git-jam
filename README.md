@@ -181,7 +181,7 @@ to fetch and replace them with their actual content.
 
 #### Git hooks.
 
-Git provides `pre-push` and `post-checkout` hooks to invoke custom operations.
+Git provides `pre-push`, `post-checkout` and `post-merge` hooks to invoke custom operations.
 
 `git-jam` comes with a simple way to setup those hooks to automatically invoke `git jam push` and `git-jam pull` on those operations.
 
@@ -189,7 +189,62 @@ Just run
 
     git-jam setup-hooks
 
-in your repository's folder and those hooks will be installed, automatically invoking `git-jam push` and `git-jam pull` on your behalf when doing push and checkout operations in git.
+in your repository's folder and those hooks will be installed, automatically invoking `git-jam push` and `git-jam pull` on your behalf when doing push, pull and checkout operations in git.
+
+
+## Using `git-jam` in `gitolite`
+
+[`gitolite`](http://gitolite.com/gitolite/index.html) is a popular server backend for git, as it provides fairly easy setup and good flexibility. It is not very hard to setup `gitolite` to use `git-jam`. Here is how:
+
+By default `gitolite` does not support sftp, which `git-jam` uses to move the binary files to and from the server. To add sftp support to gitolite you need to do the following things.
+
+1. In your .gitolite.rc under the ENABLE section is a COMMANDS block. Add 'sftp-server' to it (don't forget the comma):
+
+
+```
+ENABLE => [
+
+    # COMMANDS
+
+        # These are the commands enabled by default
+        'help',
+        'desc',
+        'info',
+        'perms',
+        'writable',
+
+	'lock',
+
+	# Used by git-jam
+	'sftp-server',
+```
+
+1. Find the commented out value for `LOCAL_CODE` and enable it for `$ENV{HOME}/local`:
+
+```
+    # suggested locations for site-local gitolite code (see cust.html)
+
+        # this one is managed directly on the server
+        LOCAL_CODE                =>  "$ENV{HOME}/local",
+
+```
+
+1. Create the actual command executable. In your `gitolite3` home directory create a subdirectory `local` with a subdirectory `commands`. In there create a link to the OpenSSH `sftp-server` executable, probably something like this:
+
+`ln -sf /usr/libexec/openssh/sftp-server local/commands/sftp-server`
+
+1. Unfortunately the way OpenSSH handles sftp and the way gitolite expects local commands don't work well together. To make it work it is necessary to change the OpenSSH configuration. In your `/etc/ssh/sshd_config` change the `Subsystem sftp /usr/libexec/openssh/sftp-server` line to 
+
+`Subsystem	sftp	sftp-server`
+
+The problem with this is that it disables `sftp` support for other users. If that is important you will have to add the `/usr/libexec/openssh` path to the user's `PATH`.
+
+**Warning!** Every change to `sshd_config` can have security consequences! Don't use this on a server where you have to worry about your users trying to do bad things, or on a public facing server if you're not sure what it does!
+
+1. Copy the gitolite SSH key to `${HOME}/.ssh/id_rsa` for git-jam to pick it up correctly.
+
+That should be it. Enjoy!
+
 
 ## What about other storage options?
 
