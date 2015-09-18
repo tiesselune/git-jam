@@ -97,20 +97,32 @@ exports.setUpHooks = function(){
 	var exit = "exit 0";
 	var prePush = bang + "git-jam push\n\n" + exit;
 	var postCheckout = bang + "git-jam pull\n\n" + exit;
+	var postMerge = bang + "git-jam pull\n\n" + exit;
 	return exports.getJamPath()
 	.then(function(jamPath){
 		var hooks = path.resolve(jamPath,"..","hooks");
 		var postCheckoutPath = path.join(hooks,"post-checkout");
+		var postMergePath = path.join(hooks,"post-merge");
 		var prePushPath = path.join(hooks,"pre-push");
 		if(!fs.existsSync(postCheckoutPath)){
 			fs.writeFileSync(postCheckoutPath,postCheckout);
+			fs.chmodSync(postCheckoutPath, "755");
 			console.log('Successfully created post-checkout hook.')
 		}
 		else{
 			console.error('A post-checkout hook already exists. Post-checkout has not been set-up.')
 		}
+		if(!fs.existsSync(postMergePath)){
+			fs.writeFileSync(postMergePath,postMerge);
+			fs.chmodSync(postMergePath, "755");
+			console.log('Successfully created post-merge hook.')
+		}
+		else{
+			console.error('A post-merge hook already exists. Post-merge has not been set-up.')
+		}
 		if(!fs.existsSync(prePushPath)){
 			fs.writeFileSync(prePushPath,prePush);
+			fs.chmodSync(prePushPath, "755");
 			console.log('Successfully created pre-push hook.')
 		}
 		else{

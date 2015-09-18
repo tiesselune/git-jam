@@ -22,7 +22,7 @@ exports.PushFiles = function(jamPath,digests){
 		var promiseChain = When(true);
 		digests.forEach(function(digest){
 			promiseChain = promiseChain.then(function(){
-				return sftp.fastPut(jamPath + pathSeparator + digest,path.join(remotePath,digest),{});
+				return sftp.fastPut(path.join(jamPath, digest),remotePath + pathSeparator + digest,{});
 			})
 			.then(function(){
 				console.log('Pushed',digest +'.');
