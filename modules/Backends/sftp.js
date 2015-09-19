@@ -117,9 +117,9 @@ exports.SSHConnection.prototype.connectUsingCredentials = function(){
 		if(host == undefined){
 			throw new Error('Please set up a host for SFTP connection :\n\tgit jam config -g sftp.host example.com');
 		}
-		return [host,gitUtils.jamConfig('sftp.user'),gitUtils.jamConfig('sftp.password')];
+		return [host,gitUtils.jamConfig('sftp.user'),gitUtils.jamConfig('sftp.password'),gitUtils.jamConfig('sftp.privateKeyName')];
 	})
-	.spread(function(host,user,password){
+	.spread(function(host,user,password,privateKey){
 		if(user == undefined){
 			throw new Error('Please set up a user for SFTP connection :\n\tgit jam config sftp.user username');
 		}
@@ -127,7 +127,11 @@ exports.SSHConnection.prototype.connectUsingCredentials = function(){
 			return this.connect({host : host,username : user, password : password, port : 22});
 		}
 		else{
-			var privateKeyPath = path.resolve(getUserHome(),'.ssh/id_rsa');
+			var keyName = privateKey;
+			if(keyName === undefined){
+				keyName = "id_rsa";
+			}
+			var privateKeyPath = path.resolve(getUserHome(),'.ssh',keyName);
 			if(fs.existsSync(privateKeyPath)){
 				return this.connect({host : host,username : user, privateKey : fs.readFileSync(privateKeyPath), port : 22});
 			}

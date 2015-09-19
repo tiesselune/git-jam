@@ -133,9 +133,11 @@ You can setup those values that way:
     git jam config sftp.user "j.tiesselune"
     git jam config sftp.password "******"
 
-If you don't provide your password (*and you really should not*), your ssh keypair will be used (`id_rsa` & `id_rsa.pub`).
+If you don't provide your password (*and you really should not*), your ssh keypair will be used (`id_rsa` & `id_rsa.pub`). Optionally, you can configure a different key by setting the `sftp.privateKeyName` option:
 
-> The `-g` option is optional. Usually, the host and path are the same for every user of your repo, so you should probably use it for that. But you probably don't want everyone in your team sharing your username.
+    git jam config sftp.privateKeyName <Relative path to your private key starting from HOME/.ssh>
+
+> The `-g` option is optional. Usually, the host and path are the same for every user of your repo, so you should probably use it for that. But you probably don't want everyone in your team sharing your username/password.
 
 > **Under Windows**, Mysysgit might transform your path to `C:\\something` which obviously won't work on linux remote hosts. You can always change it directly in the `.jamconfig` file.
 
@@ -233,7 +235,7 @@ ENABLE => [
 
 `ln -sf /usr/libexec/openssh/sftp-server local/commands/sftp-server`
 
-* Unfortunately the way OpenSSH handles sftp and the way gitolite expects local commands don't work well together. To make it work it is necessary to change the OpenSSH configuration. In your `/etc/ssh/sshd_config` change the `Subsystem sftp /usr/libexec/openssh/sftp-server` line to 
+* Unfortunately the way OpenSSH handles sftp and the way gitolite expects local commands don't work well together. To make it work it is necessary to change the OpenSSH configuration. In your `/etc/ssh/sshd_config` change the `Subsystem sftp /usr/libexec/openssh/sftp-server` line to
 
 `Subsystem	sftp	sftp-server`
 
