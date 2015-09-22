@@ -31,7 +31,7 @@ exports.jamCleanFilter = function(){
 					fs.writeFileSync(path.join(jamPath,digest),data);
 					fs.appendFileSync(path.join(jamPath,constants.ToSyncJam),digest + '\n');
 				}
-				fs.writeSync(1, constants.JamCookie + digest + '\n');
+				fs.writeSync(1, constants.JamCookie + digest);
 			});
 		}else{
 			fs.writeSync(1, data);

@@ -121,7 +121,7 @@ S3.prototype.DownloadFile = function(path){
             defered.reject(err);
         }
         else{
-            defered.resolve(data);
+            defered.resolve(data.Body);
         }
     });
     return defered.promise;
