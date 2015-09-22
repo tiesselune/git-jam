@@ -1,7 +1,7 @@
 {
   "name": "git-jam",
   "description": "Yet another binary manager for git, largely inspired by git-fat, but aimed at being more cross-platform",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "keywords": [
     "git",
     "binary",
