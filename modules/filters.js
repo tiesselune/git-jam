@@ -60,9 +60,7 @@ exports.jamSmudgeFilter = function(){
 			gitUtils.getJamPath()
 			.then(function(jamPath){
 				var objectPath = path.join(jamPath,digest);
-				fs.writeSync(2, "Got Jam path\n" + objectPath + "\n");
 				if(!fs.existsSync(objectPath)){
-					fs.writeSync(2, "Does not Exist!\n");
 					var line = digest + '\n';
 					jamFile.isAlreadyMissing(digest)
 					.then(function(res){
