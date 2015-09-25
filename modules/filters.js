@@ -5,14 +5,25 @@ var gitUtils = require('./gitUtils.js');
 var jamFile = require('./jamFile.js');
 var constants = require('./constants.json');
 
+var BufferStepSize = 10000000;
+
 exports.jamCleanFilter = function(){
 	var stdin = process.openStdin();
-	var data = new Buffer(0);
+	var data = new Buffer(BufferStepSize, "binary");
+	var blength = 0;
 	stdin.on('data',function(chunk){
-		data = Buffer.concat([data,chunk]);
+                while (blength + chunk.length > data.length)
+                {
+                    var nd = new Buffer(data.length + BufferStepSize, "binary");
+                    data.copy(nd);
+                    data = nd;
+                }
+		chunk.copy(data, blength);
+                blength += chunk.length;
 	});
 	stdin.on('end',function(){
 		if(!jamFile.isJam(data)){
+                        data=data.slice(0, blength);
 			var digest = jamFile.sha1(data);
 			gitUtils.getJamPath()
 			.then(function(jamPath){
@@ -30,13 +41,22 @@ exports.jamCleanFilter = function(){
 
 exports.jamSmudgeFilter = function(){
 	var stdin = process.openStdin();
-	var data = new Buffer(0);
+	var data = new Buffer(BufferStepSize, "binary");
+	var blength = 0;
 	stdin.on('data',function(chunk){
-		data = Buffer.concat([data,chunk]);
+                while (blength + chunk.length > data.length)
+                {
+                    var nd = new Buffer(data.length + BufferStepSize, "binary");
+                    data.copy(nd);
+                    data = nd;
+                }
+		chunk.copy(data, blength);
+                blength += chunk.length;
 	});
 	stdin.on('end',function(){
 		if(jamFile.isJam(data)){
-			var digest = jamFile.getDigestFromJam(data);
+			data=data.slice(0, blength);
+                        var digest = jamFile.getDigestFromJam(data);
 			gitUtils.getJamPath()
 			.then(function(jamPath){
 				var objectPath = path.join(jamPath,digest);

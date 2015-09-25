@@ -128,7 +128,11 @@ exports.SSHConnection.prototype.connectUsingCredentials = function(){
 		}
 		else{
 			var privateKeyPath = path.resolve(getUserHome(),'.ssh/id_rsa');
-			if(fs.existsSync(privateKeyPath)){
+			// assume ssh-agent is running when the environment variable containing the socket is set
+			if(process.env["SSH_AUTH_SOCK"] != undefined){
+				return this.connect({host : host, username : user, agent : process.env["SSH_AUTH_SOCK"], port : 22});
+			}
+			else if(fs.existsSync(privateKeyPath)){
 				return this.connect({host : host,username : user, privateKey : fs.readFileSync(privateKeyPath), port : 22});
 			}
 			else{
