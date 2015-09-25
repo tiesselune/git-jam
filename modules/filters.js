@@ -22,8 +22,8 @@ exports.jamCleanFilter = function(){
                 blength += chunk.length;
 	});
 	stdin.on('end',function(){
+		data=data.slice(0, blength);
 		if(!jamFile.isJam(data)){
-                        data=data.slice(0, blength);
 			var digest = jamFile.sha1(data);
 			gitUtils.getJamPath()
 			.then(function(jamPath){
@@ -34,7 +34,7 @@ exports.jamCleanFilter = function(){
 				fs.writeSync(1, constants.JamCookie + digest);
 			});
 		}else{
-			fs.writeSync(1, data);
+			fs.writeSync(1, data, 0, data.length);
 		}
 	});
 };
@@ -54,13 +54,15 @@ exports.jamSmudgeFilter = function(){
                 blength += chunk.length;
 	});
 	stdin.on('end',function(){
+		data=data.slice(0, blength);
 		if(jamFile.isJam(data)){
-			data=data.slice(0, blength);
-                        var digest = jamFile.getDigestFromJam(data);
+            var digest = jamFile.getDigestFromJam(data);
 			gitUtils.getJamPath()
 			.then(function(jamPath){
 				var objectPath = path.join(jamPath,digest);
+				fs.writeSync(2, "Got Jam path\n" + objectPath + "\n");
 				if(!fs.existsSync(objectPath)){
+					fs.writeSync(2, "Does not Exist!\n");
 					var line = digest + '\n';
 					jamFile.isAlreadyMissing(digest)
 					.then(function(res){
@@ -71,12 +73,13 @@ exports.jamSmudgeFilter = function(){
 					fs.writeSync(1, constants.JamCookie + digest);
 				}
 				else{
-					fs.writeSync(1, fs.readFileSync(objectPath));
+					var file = fs.readFileSync(objectPath);
+					fs.writeSync(1, file,0,file.length);
 				}
 			});
 		}
 		else{
-			fs.writeSync(1, data);
+			fs.writeSync(1, data, 0, data.length);
 		}
 	});
 };
