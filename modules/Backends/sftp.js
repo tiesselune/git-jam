@@ -135,6 +135,10 @@ exports.SSHConnection.prototype.connectUsingCredentials = function(){
 			else if(fs.existsSync(privateKeyPath)){
 				return this.connect({host : host,username : user, privateKey : fs.readFileSync(privateKeyPath), port : 22});
 			}
+			else if(process.platform === 'win32') {
+				//If private key was not provided and we are on Windows, try pageant.
+				return this.connect({host : host, username : user, agent : 'pageant', port : 22});
+			}
 			else{
 				throw new Error('Please set up a password for SFTP connection :\n\tgit jam config sftp.password <pswd>\nYou can also set up a SSH key pair in HOME/.ssh.');
 			}
