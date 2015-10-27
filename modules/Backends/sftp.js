@@ -4,6 +4,58 @@ var gitUtils = require('../gitUtils.js');
 var path = require('path');
 var fs = require('fs');
 
+exports.ConfigurationPrompts = [
+	{
+		Global : true,
+		Category : "sftp",
+		Name : "host",
+		Prompt : "Please set up the remote SSH hostname : "
+	},
+	{
+		Global : true,
+		Category : "sftp",
+		Name : "system",
+		Prompt : "What is the remote system ?",
+		Choices : [{Display : "Unix", Value : "unix"},{Display : "Windows", Value : "windows"}]
+	},
+	{
+		Global : true,
+		Category : "sftp",
+		Name : "path",
+		Prompt : "Please set up the path of the target directory on the remote host:",
+	},
+	{
+		Global : false,
+		Category : "sftp",
+		Name : "auth-method",
+		Prompt : "Which SSH authentication method would you like to use ?",
+		Choices : [
+			{Display : "SSH Keypair",Value : "ssh-keypair"},
+			{Display : "Pageant",Value : "pageant",},
+			{Display : "Ssh-agent",Value : "ssh-agent"},
+			{
+				Display : "User & Password [Not recommended : stored as clear text]",
+				Value : "password",
+				SubsequentPrompts :
+				[
+					{
+						Global : false,
+						Category : "sftp",
+						Name : "user",
+						Prompt : "What is your SSH user name? "
+					},
+					{
+						Global : false,
+						Category : "sftp",
+						Name : "password",
+						Prompt : "What is your SSH password? "
+					}
+				]
+			}
+		]
+	}
+];
+
 exports.PushFiles = function(jamPath,digests){
 	var failedDigestList = [];
 	var sshConn = new exports.SSHConnection();
