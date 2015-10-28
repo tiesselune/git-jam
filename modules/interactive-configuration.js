@@ -31,6 +31,9 @@ exports.InteractiveConfiguration = function(){
 exports.GetConfigWithPrompt = function(key,backend){
     var configProperties = [];
     var i = 0;
+    if(key && key instanceof Array){
+        return getConfigWithPromptArray(key,backend);
+    }
     return gitUtils.jamConfig(key)
     .then(function(value){
         if(value){
@@ -68,7 +71,7 @@ exports.GetConfigWithPrompt = function(key,backend){
         })
         .then(function(){
             for(i=0;i<configProperties.length;i++){
-                if(configPropeties[i].PropertyPath == key){
+                if(configProperties[i].PropertyPath == key){
                     return configProperties[i].Value;
                 }
             }
@@ -76,6 +79,23 @@ exports.GetConfigWithPrompt = function(key,backend){
         });
     });
 };
+
+function getConfigWithPromptArray(keys,backend){
+    var values = [];
+    var promise = When(true);
+    keys.forEach(function(key){
+        promise = promise.then(function(){
+            return exports.GetConfigWithPrompt(key,backend);
+        })
+        .then(function(value){
+            values.push(value);
+        });
+    });
+    return promise
+    .then(function(){
+        return values;
+    });
+}
 
 function BackendConfiguration(configProperties){
     console.log("The backend for git-jam is not configured.");

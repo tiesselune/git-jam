@@ -1,6 +1,7 @@
 var ssh2 = require('ssh2');
 var When = require('when');
 var gitUtils = require('../gitUtils.js');
+var iConfig = require("../interactive-configuration.js");
 var path = require('path');
 var fs = require('fs');
 
@@ -65,15 +66,14 @@ exports.PushFiles = function(jamPath,digests){
 	var sshConn = new exports.SSHConnection();
 	return sshConn.connectUsingCredentials()
 	.then(function(){
-		return [sshConn.sftp(),gitUtils.jamConfig('sftp.path'),gitUtils.jamConfig('sftp.system')];
+		return [sshConn.sftp(),iConfig.GetConfigWithPrompt(['sftp.path','sftp.system'],exports);];
 	})
-	.spread(function(sftp,remotePath,remoteSystem){
+	.spread(function(sftp,configArray){
+		var remotePath = configArray[0];
+		var remoteSystem = configArray[1];
 		var pathSeparator = "/";
 		if(remoteSystem !== undefined && ["win32","windows"].indexOf(remoteSystem.toLowerCase()) >= 0){
 			pathSeparator = "\\";
-		}
-		if(!remotePath){
-			throw new Error("Please specify a remote path :\n\tgit jam config -g sftp.path <path>");
 		}
 		var promiseChain = When(true);
 		digests.forEach(function(digest){
@@ -109,15 +109,14 @@ exports.PullFiles = function(jamPath,digests){
 	var sshConn = new exports.SSHConnection();
 	return sshConn.connectUsingCredentials()
 	.then(function(){
-		return [sshConn.sftp(),gitUtils.jamConfig('sftp.path'),gitUtils.jamConfig('sftp.system')];
+		return [sshConn.sftp(),iConfig.GetConfigWithPrompt(['sftp.path','sftp.system'],exports);];
 	})
-	.spread(function(sftp,remotePath,remoteSystem){
+	.spread(function(sftp,configArray){
+		var remotePath = configArray[0];
+		var remoteSystem = configArray[1];
 		var pathSeparator = "/";
 		if(remoteSystem !== undefined && ["win32","windows"].indexOf(remoteSystem.toLowerCase()) >= 0){
 			pathSeparator = "\\";
-		}
-		if(!remotePath){
-			throw new Error("Please specify a remote path :\n\tgit jam config -g sftp.path \"<path>\"");
 		}
 		var promiseChain = When(true);
 		digests.forEach(function(digest){

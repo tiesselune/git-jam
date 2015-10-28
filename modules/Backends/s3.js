@@ -1,6 +1,7 @@
 var aws = require('aws-sdk');
 var When = require('when');
 var gitUtils = require('../gitUtils.js');
+var iConfig = require("../interactive-configuration.js");
 var path = require('path');
 var fs = require('fs');
 
@@ -45,15 +46,11 @@ exports.PushFiles = function(jamPath,digests){
 	var failedDigestList = [];;
 	return configureAWS()
 	.then(function(){
-		return [gitUtils.jamConfig('s3.Bucket'),gitUtils.jamConfig('s3.Path')];
+		return iConfig.GetConfigWithPrompt(['s3.Bucket','s3.Path'],exports);
 	})
-	.spread(function(bucket,basePath){
-        if(!bucket){
-            throw new Error("Please specify a bucket :\n\tgit jam config -g s3.Bucket <bucket name>");
-        }
-		if(!basePath){
-			throw new Error("Please specify a base path :\n\tgit jam config -g s3.Path <path>");
-		}
+	.then(function(config){
+		var bucket = config[0];
+		var basePath = config[1];
 		var promiseChain = When(true);
         var s3 = new S3(bucket);
         var cleanBasePath = basePath[basePath.length - 1] == "/" ?  basePath : basePath + "/";
@@ -81,15 +78,11 @@ exports.PullFiles = function(jamPath,digests){
     var failedDigestList = [];;
 	return configureAWS()
 	.then(function(){
-		return [gitUtils.jamConfig('s3.Bucket'),gitUtils.jamConfig('s3.Path')];
+		return iConfig.GetConfigWithPrompt(['s3.Bucket','s3.Path'],exports);
 	})
-	.spread(function(bucket,basePath){
-        if(!bucket){
-            throw new Error("Please specify a bucket :\n\tgit jam config -g s3.Bucket <bucket name>");
-        }
-		if(!basePath){
-			throw new Error("Please specify a base path :\n\tgit jam config -g s3.Path <path>");
-		}
+	.then(function(config){
+		var bucket = config[0];
+		var basePath = config[1];
 		var promiseChain = When(true);
         var s3 = new S3(bucket);
         var cleanBasePath = basePath[basePath.length - 1] == "/" ?  basePath : basePath + "/";
@@ -115,20 +108,11 @@ exports.PullFiles = function(jamPath,digests){
 };
 
 function configureAWS(){
-    return When.all([gitUtils.jamConfig('s3.AccessKeyID'),gitUtils.jamConfig('s3.SecretAccessKey'),gitUtils.jamConfig('s3.Region')])
-    .spread(function(key1,key2,region){
-        if(!key1){
-            throw new Error("Please specify an Access Key ID :\n\tgit jam config -g s3.AccessKeyID <Key>");
-        }
-        if(!key2){
-            throw new Error("Please specify a Secret Access Key :\n\tgit jam config -g s3.SecretAccessKey <Key>");
-        }
-        if(!region){
-            throw new Error("Please specify a Region :\n\tgit jam config -g s3.Region <region>");
-        }
-        aws.config.accessKeyId = key1;
-        aws.config.secretAccessKey = key2;
-        aws.config.region = region;
+    return iConfig.GetConfigWithPrompt(['s3.AccessKeyID','s3.SecretAccessKey','s3.Region'],exports)
+    .then(function(values){
+        aws.config.accessKeyId = values[0];
+        aws.config.secretAccessKey = values[1];
+        aws.config.region = values[2];
         return When(true);
     });
 }
