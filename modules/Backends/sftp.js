@@ -35,7 +35,19 @@ exports.ConfigurationPrompts = [
 		Name : "auth-method",
 		Prompt : "Which SSH authentication method would you like to use ?",
 		Choices : [
-			{Display : "SSH Keypair",Value : "ssh-keypair"},
+			{
+				Display : "SSH Keypair",Value : "ssh-keypair",
+				SubsequentPrompts :
+				[
+					{
+						Global : false,
+						Category : "sftp",
+						Name : "keyPath",
+						Prompt : "Enter the path of your private SSH key relative to $HOME",
+						Default : ".ssh/id_rsa"
+					}
+				]
+			},
 			{Display : "Pageant",Value : "pageant",},
 			{Display : "Ssh-agent",Value : "ssh-agent"},
 			{
@@ -66,7 +78,7 @@ exports.PushFiles = function(jamPath,digests){
 	var sshConn = new exports.SSHConnection();
 	return sshConn.connectUsingCredentials()
 	.then(function(){
-		return [sshConn.sftp(),iConfig.GetConfigWithPrompt(['sftp.path','sftp.system'],exports);];
+		return [sshConn.sftp(),iConfig.GetConfigWithPrompt(['sftp.path','sftp.system'],exports)];
 	})
 	.spread(function(sftp,configArray){
 		var remotePath = configArray[0];
@@ -109,7 +121,7 @@ exports.PullFiles = function(jamPath,digests){
 	var sshConn = new exports.SSHConnection();
 	return sshConn.connectUsingCredentials()
 	.then(function(){
-		return [sshConn.sftp(),iConfig.GetConfigWithPrompt(['sftp.path','sftp.system'],exports);];
+		return [sshConn.sftp(),iConfig.GetConfigWithPrompt(['sftp.path','sftp.system'],exports)];
 	})
 	.spread(function(sftp,configArray){
 		var remotePath = configArray[0];

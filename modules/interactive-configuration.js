@@ -163,6 +163,9 @@ function singlePrompt(promptObject,propertiesArray,checkExistingValue){
                     return promptObject.Choices[answer];
                 });
             }
+            else if(promptObject.Default && promptObject.Default.length > 0){
+                return DefaultAsk(promptObject.Prompt,promptObject.Default);
+            }
             else{
                 return Ask(promptObject.Prompt);
             }
@@ -203,6 +206,16 @@ function YesNoAsk(question){
         }
         console.log("\nAnswer is not valid. Please answer \"yes\" or \"no\".");
         return YesNoAsk(question);
+    });
+}
+
+function DefaultAsk(question,def){
+    return Ask(question + " (" + def+")")
+    .then(function(answer){
+        if(answer.length > 0){
+            return answer;
+        }
+        return def;
     });
 }
 
