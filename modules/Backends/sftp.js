@@ -65,6 +65,7 @@ exports.ConfigurationPrompts = [
 						Global : false,
 						Category : "sftp",
 						Name : "password",
+						Secret : true,
 						Prompt : "What is your SSH password? "
 					}
 				]
