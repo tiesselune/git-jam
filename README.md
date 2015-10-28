@@ -13,10 +13,6 @@ Yet another binary manager for git, largely inspired by git-fat, but aimed at be
     //Configuration
     git jam init
     git jam filter "*.png"
-    git jam config -g sftp.host "myexamplehost.com"
-    git jam config -g sftp.path "/share/DATA/GitJam/MyProject"
-    git jam config sftp.user "j.tiesselune"
-    git jam config sftp.password "******"
 
     //Usage
     git add somefile.png
@@ -94,6 +90,8 @@ You can now configure your backend.
 
 ### Setting a configuration key-value pair.
 
+**These should be handled when initializing `git-jam`. If you want to manually handle git-jam's configuration, you can refer to this guide :**
+
 There are two places for configuration in git-jam.
 
  1. the `.jamconfig` file
@@ -111,49 +109,17 @@ To save a value to the normal git config, use:
 
 > If a key exists in both the `.jamconfig` file and in the local git config, local git config will be preferred. That way you can locally override options in `.jamconfig`.
 
-### SFTP
-Currently, this is the default backend for `git-jam`.
+### Backends :
 
-The SFTP backend needs 3 inputs in order to work.
-* Your ssh user name;
-* The host on which your jam files will be saved *Ex : myexamplehost.com*
-* The path to a jam directory (that you have setup on your host): *Ex : /share/DATA/GitJam/MyProject*
-* Optionally, your ssh password.
+The main goal `git-jam` is to handle binary or large files out of the git tree.
+Versions of these files should still be saved somewhere. To be more flexible than `git-fat`, `git-jam` allows different backend solutions:
 
-> If you have a configured ssh keypair under $HOME/.ssh/, you can skip the password. Otherwise, you will have to save your password in a config file, which I **strongly advise not to do**.
+Currently, those backends are supported:
+1. SFTP (FTP through SSH, available wherever SSH exists)
+2. Amazon S3.
 
-You can setup those values that way:
-
-    git jam config -g sftp.host "myexamplehost.com"
-    git jam config -g sftp.path "/share/DATA/GitJam/MyProject"
-
-    //If your sftp *host* is under Windows. Linux is supported by default.
-    git jam config -g sftp.system "win32"
-
-    git jam config sftp.user "j.tiesselune"
-    git jam config sftp.password "******"
-
-If you don't provide your password (*and you really should not*), your ssh keypair will be used (`id_rsa` & `id_rsa.pub`).
-
-> The `-g` option is optional. Usually, the host and path are the same for every user of your repo, so you should probably use it for that. But you probably don't want everyone in your team sharing your username.
-
-> **Under Windows**, Mysysgit might transform your path to `C:\\something` which obviously won't work on linux remote hosts. You can always change it directly in the `.jamconfig` file.
-
-### Amazon S3
-
-The **Amazon S3** backend can be enabled by running
-
-    git jam config backend s3
-
-in a `git-jam` enabled git repository.
-
-You'll have to configure 5 variables in order for it to work.
-
-    git jam config s3.AccessKeyID <someKey> //with your access key ID from AWS IAM.
-    git jam config s3.SecretAccessKey <someKey> //with your secret key from AWS IAM
-    git jam config -g s3.Region <bucket region> // with the region of an existing bucket
-    git jam config -g s3.Bucket <bucket name> // With an existing S3 bucket name
-    git jam config -g s3.Path <path inside bucket> // A path if you want to target a specific directory in the bucket.
+Interactive configuration of those backends should happen when running
+    git jam init
 
 ### Jam file workflow
 
@@ -164,12 +130,12 @@ Once you defined your filters, you can add your files to the index the way you w
 
 There are two ways of synchronizing files with your backend:
 
+    1. Git-hooks
     1. Manual push and pull
-    2. Git-hooks
 
 #### Manual push and pull
 
-In order to have your files synchonised with your backend, you must invoke
+In order to have your files synchronised with your backend, you must invoke
 
     git jam push
 
@@ -233,7 +199,7 @@ ENABLE => [
 
 `ln -sf /usr/libexec/openssh/sftp-server local/commands/sftp-server`
 
-* Unfortunately the way OpenSSH handles sftp and the way gitolite expects local commands don't work well together. To make it work it is necessary to change the OpenSSH configuration. In your `/etc/ssh/sshd_config` change the `Subsystem sftp /usr/libexec/openssh/sftp-server` line to 
+* Unfortunately the way OpenSSH handles sftp and the way gitolite expects local commands don't work well together. To make it work it is necessary to change the OpenSSH configuration. In your `/etc/ssh/sshd_config` change the `Subsystem sftp /usr/libexec/openssh/sftp-server` line to
 
 `Subsystem	sftp	sftp-server`
 
