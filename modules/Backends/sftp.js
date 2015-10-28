@@ -4,6 +4,10 @@ var gitUtils = require('../gitUtils.js');
 var path = require('path');
 var fs = require('fs');
 
+exports.Properties = {
+	DisplayName : "SFTP"
+};
+
 exports.ConfigurationPrompts = [
 	{
 		Global : true,

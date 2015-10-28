@@ -1,14 +1,28 @@
 var When = require('when');
 var gitUtils = require('./gitUtils.js');
 var readline = require('readline');
+var listBackends = require('./Backends/list.js');
 
 exports.InteractiveConfiguration = function(){
+    return gitUtils.jamConfig("backend")
+    .then(function(backend){
+        if(backend){
+            return When(true);
+        }
+        return BackendConfiguration();
+    })
+    .then(function(){
+        return HooksConfiguration();
+    });
+};
+
+function BackendConfiguration(){
     console.log("The backend for git-jam is not configured.");
     return YesNoAsk("Would you like to configure it now? [Y/n]")
     .then(function(answer){
         if(answer){
-            var choices = ["the red pill","the blue pill"];
-            return RangeAsk("Which of these would you choose ? ", choices)
+            var choices = listBackends().map(function(elem,i,array){return elem.DisplayName ? elem.DisplayName : elem.ModuleName});
+            return RangeAsk("Which backend do you want to use ?", choices)
             .then(function(answer){
                 console.log("You chose " + choices[answer]);
             });
@@ -58,4 +72,4 @@ function RangeAsk(question,choices){
     });
 }
 
-exports.InteractiveConfiguration();
+BackendConfiguration();
