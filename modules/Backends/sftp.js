@@ -32,6 +32,12 @@ exports.ConfigurationPrompts = [
 	{
 		Global : false,
 		Category : "sftp",
+		Name : "user",
+		Prompt : "What is your SSH user name? "
+	},
+	{
+		Global : false,
+		Category : "sftp",
 		Name : "auth-method",
 		Prompt : "Which SSH authentication method would you like to use ?",
 		Choices : [
@@ -42,25 +48,23 @@ exports.ConfigurationPrompts = [
 					{
 						Global : false,
 						Category : "sftp",
-						Name : "keyPath",
+						Name : "ssh-keypath",
 						Prompt : "Enter the path of your private SSH key relative to $HOME",
-						Default : ".ssh/id_rsa"
+						Default : ".ssh/id_rsa",
+						Validate : function(value){
+							var privateKeyPath = path.resolve(getUserHome(),value);
+							return fs.existsSync(privateKeyPath) ? "" : "This file does not exist.";
+						}
 					}
 				]
 			},
 			{Display : "Pageant",Value : "pageant",},
 			{Display : "Ssh-agent",Value : "ssh-agent"},
 			{
-				Display : "User & Password [Not recommended : stored as clear text]",
+				Display : "Password [Not recommended : stored as clear text]",
 				Value : "password",
 				SubsequentPrompts :
 				[
-					{
-						Global : false,
-						Category : "sftp",
-						Name : "user",
-						Prompt : "What is your SSH user name? "
-					},
 					{
 						Global : false,
 						Category : "sftp",
@@ -180,18 +184,24 @@ exports.SSHConnection.prototype.connect = function(options){
 };
 
 exports.SSHConnection.prototype.connectUsingCredentials = function(){
-	return gitUtils.jamConfig('sftp.host')
-	.then(function(host){
-		if(host == undefined){
-			throw new Error('Please set up a host for SFTP connection :\n\tgit jam config -g sftp.host example.com');
+	return iConfig.GetConfigWithPrompt(['sftp.host','sftp.user','sftp.auth-method'],exports)
+	.then(function(config){
+		var host = config[0];
+		var user = config[1];
+		var authMethod = config[2];
+		switch(authMethod){
+			case "pageant":
+			return this.connect({host : host, username : user, agent : "pageant", port : 22});
+			case "ssh-agent":
+			return this.connect({host : host, username : user, agent : process.env["SSH_AUTH_SOCK"], port : 22});
+			case "ssh-keypair":
+			return connectWithKeyPair(host,user);
+			case "password":
+			return connectWithPassword(host,user);
+			default :
+
 		}
-		return [host,gitUtils.jamConfig('sftp.user'),gitUtils.jamConfig('sftp.password')];
-	})
-	.spread(function(host,user,password){
-		if(user == undefined){
-			throw new Error('Please set up a user for SFTP connection :\n\tgit jam config sftp.user username');
-		}
-		if(password != null){
+		/*if(password != null){
 			return this.connect({host : host,username : user, password : password, port : 22});
 		}
 		else{
@@ -206,7 +216,7 @@ exports.SSHConnection.prototype.connectUsingCredentials = function(){
 			else{
 				throw new Error('Please set up a password for SFTP connection :\n\tgit jam config sftp.password <pswd>\nYou can also set up a SSH key pair in HOME/.ssh.');
 			}
-		}
+		}*/
 	}.bind(this));
 }
 

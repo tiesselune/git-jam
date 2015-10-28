@@ -156,19 +156,31 @@ function singlePrompt(promptObject,propertiesArray,checkExistingValue){
             return When(undefined);
         }
         else{
+            var promise = When(true);
             console.log("\n");
             if(promptObject.Choices && promptObject.Choices.length > 0){
-                return RangeAsk(promptObject.Prompt, promptObject.Choices.map(function(elem){return elem.Display ? elem.Display : (elem.Value ? elem.Value : elem);}))
+                promise = RangeAsk(promptObject.Prompt, promptObject.Choices.map(function(elem){return elem.Display ? elem.Display : (elem.Value ? elem.Value : elem);}))
                 .then(function(answer){
                     return promptObject.Choices[answer];
                 });
             }
             else if(promptObject.Default && promptObject.Default.length > 0){
-                return DefaultAsk(promptObject.Prompt,promptObject.Default);
+                promise = DefaultAsk(promptObject.Prompt,promptObject.Default);
             }
             else{
-                return Ask(promptObject.Prompt);
+                promise = Ask(promptObject.Prompt);
             }
+            if(promptObject.Validate){
+                promise = promise.then(function(value){
+                    var validationMessage = promptObject.Validate(value);
+                    if(validationMessage === ""){
+                        return value;
+                    }
+                    console.log(validationMessage,"Please try again.");
+                    return singlePrompt(promptObject,propertiesArray,checkExistingValue);
+                });
+            }
+            return promise;
         }
     })
     .then(function(value){
