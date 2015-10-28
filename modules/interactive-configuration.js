@@ -58,7 +58,7 @@ exports.GetConfigWithPrompt = function(key,backend){
             else{
                 promise = Ask("Necessary config value " + key + "is not set.\n Please enter a value now :")
                 .then(function(answer){
-                    configProperties.push({"PropertyPath" : key, Global : false, Value : answer});
+                    configProperties.push({PropertyPath : key, Global : false, Value : answer});
                     return When(true);
                 });
             }
@@ -86,7 +86,7 @@ function BackendConfiguration(configProperties){
         var choices = backends.map(function(elem,i,array){return elem.DisplayName ? elem.DisplayName : elem.ModuleName});
         return RangeAsk("Which backend do you want to use ?", choices)
         .then(function(answer){
-            configProperties.push({"PropertyPath" : "backend", Global : true, Value : backends[answer].ModuleName});
+            configProperties.push({PropertyPath : "backend", Global : true, Value : backends[answer].ModuleName});
             return backends[answer].Module;
         });
     })
@@ -150,13 +150,13 @@ function singlePrompt(promptObject,propertiesArray,checkExistingValue){
     })
     .then(function(value){
         if(value && value.Value){
-            propertiesArray.push({"PropertyPath" : configPath, Global : promptObject.Global, Value : value.Value});
+            propertiesArray.push({PropertyPath : configPath, Global : promptObject.Global, Value : value.Value});
             if(value.SubsequentPrompts){
                 return BackendSpecificPrompts(value.SubsequentPrompts,propertiesArray);
             }
         }
         else if(value){
-            propertiesArray.push({"PropertyPath" : configPath, Global : promptObject.Global, Value : value});
+            propertiesArray.push({PropertyPath : configPath, Global : promptObject.Global, Value : value});
         }
         return When(true);
     });
