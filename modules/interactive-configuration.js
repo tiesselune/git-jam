@@ -4,41 +4,44 @@ var readline = require('readline');
 var listBackends = require('./Backends/list.js');
 
 exports.InteractiveConfiguration = function(){
+    var configProperties = [];
     return gitUtils.jamConfig("backend")
-    .then(function(backend){
-        if(backend){
-            return When(true);
+    .then(function(backendName){
+        if(backendName){
+            var backend = require("./Backends/" + backendName + ".js");
+            if(backend && backend.ConfigurationPrompts && backend.PushFiles && backend.PullFiles){
+                return BackendSpecificPrompts(backend.ConfigurationPrompts,configProperties,true);
+            }
         }
-        return BackendConfiguration();
+        return BackendConfiguration(configProperties);
     })
     .then(function(){
         return HooksConfiguration();
     });
 };
 
-function BackendConfiguration(){
+function BackendConfiguration(configProperties){
     console.log("The backend for git-jam is not configured.");
-    var configProperties = [];
     return YesNoAsk("Would you like to configure it now? [Y/n]")
     .then(function(answer){
         var backends = listBackends();
         var choices = backends.map(function(elem,i,array){return elem.DisplayName ? elem.DisplayName : elem.ModuleName});
         return RangeAsk("Which backend do you want to use ?", choices)
         .then(function(answer){
-            configProperties.push({"PropertyPath" : "backend", Global : true, Value : choices[answer.ModuleName]});
+            configProperties.push({"PropertyPath" : "backend", Global : true, Value : backends[answer].ModuleName});
             return backends[answer].Module;
         });
     })
     .then(function(backend){
-        return backendSpecificPrompts(backend.ConfigurationPrompts,configProperties);
+        return BackendSpecificPrompts(backend.ConfigurationPrompts,configProperties,false);
     });
 }
 
-function backendSpecificPrompts(prompts,propertyObject){
+function BackendSpecificPrompts(prompts,propertyObject,checkExistingValues){
     var result = When(true);
     prompts.forEach(function(prompt){
         result = result
-        .then(function(){return singlePrompt(prompt,propertyObject,false);});
+        .then(function(){return singlePrompt(prompt,propertyObject,checkExistingValues);});
     });
     return result;
 }
@@ -69,7 +72,7 @@ function singlePrompt(promptObject,propertiesArray,checkExistingValue){
         if(value && value.Value){
             propertiesArray.push({"PropertyPath" : configPath, Global : promptObject.Global, Value : value.Value});
             if(value.SubsequentPrompts){
-                return backendSpecificPrompts(value.SubsequentPrompts,propertiesArray);
+                return BackendSpecificPrompts(value.SubsequentPrompts,propertiesArray);
             }
         }
         else if(value){
@@ -119,5 +122,7 @@ function RangeAsk(question,choices){
         return RangeAsk(question,choices);
     });
 }
-
-BackendConfiguration();
+var array = [];
+BackendConfiguration(array).then(function(){
+    console.log(JSON.stringify(array,null,"\t"));
+});
