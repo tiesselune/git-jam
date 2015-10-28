@@ -16,6 +16,9 @@ exports.InteractiveConfiguration = function(){
         return BackendConfiguration(configProperties);
     })
     .then(function(){
+        return SetUpJamConfiguration(configProperties);
+    })
+    .then(function(){
         return HooksConfiguration();
     });
 };
@@ -44,6 +47,26 @@ function BackendSpecificPrompts(prompts,propertyObject,checkExistingValues){
         .then(function(){return singlePrompt(prompt,propertyObject,checkExistingValues);});
     });
     return result;
+}
+
+function SetUpJamConfiguration(configProperties){
+    var result = When(true);
+    configProperties.forEach(function(property){
+        result = result.then(function(){
+            return property.Global ? gitUtils.dotJamConfig(propterty.PropertyPath,property.Value) : gitUtils.gitJamConfig(propterty.PropertyPath,property.Value);
+        });
+    });
+    return result;
+}
+
+function HooksConfiguration(){
+    return YesNoAsk("Would you like to set up hooks for automatic jam files handling?")
+    .then(function(yes){
+        if(yes){
+            return gitUtils.setUpHooks();
+        }
+        return When(true);
+    });
 }
 
 function singlePrompt(promptObject,propertiesArray,checkExistingValue){
