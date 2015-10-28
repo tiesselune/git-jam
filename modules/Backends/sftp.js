@@ -26,7 +26,7 @@ exports.ConfigurationPrompts = [
 		Global : true,
 		Category : "sftp",
 		Name : "path",
-		Prompt : "Please set up the path of the target directory on the remote host:\n> ",
+		Prompt : "Please set up the path of the target directory on the remote host:\n>",
 	},
 	{
 		Global : false,

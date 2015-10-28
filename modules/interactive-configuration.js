@@ -10,6 +10,7 @@ exports.InteractiveConfiguration = function(){
         if(backendName){
             var backend = require("./Backends/" + backendName + ".js");
             if(backend && backend.ConfigurationPrompts && backend.PushFiles && backend.PullFiles){
+                console.log("Backend is configured. Configuring backend options...");
                 return BackendSpecificPrompts(backend.ConfigurationPrompts,configProperties,true);
             }
         }
@@ -20,13 +21,67 @@ exports.InteractiveConfiguration = function(){
     })
     .then(function(){
         return HooksConfiguration();
+    })
+    .then(function(){
+        console.log("Interactive configuration completed.");
+        return When(true);
+    });
+};
+
+exports.GetConfigWithPrompt = function(key,backend){
+    var configProperties = [];
+    var i = 0;
+    return gitUtils.jamConfig(key)
+    .then(function(value){
+        if(value){
+            return value;
+        }
+        var promise = When(true);
+        if(key == "backend"){
+            promise = BackendConfiguration(configProperties);
+        }
+        else{
+            var prompt;
+            if(backend){
+                for(i=0;i<backend.ConfigurationPrompts.length;i++){
+                    var element = backend.ConfigurationPrompts[i];
+                    var path = element.Category+ "." + element.Name;
+                    if(key == path){
+                        prompt = element;
+                        break;
+                    }
+                }
+            }
+            if(prompt){
+                promise = singlePrompt(prompt,configProperties,true);
+            }
+            else{
+                promise = Ask("Necessary config value " + key + "is not set.\n Please enter a value now :")
+                .then(function(answer){
+                    configProperties.push({"PropertyPath" : key, Global : false, Value : answer});
+                    return When(true);
+                });
+            }
+        }
+        return promise.then(function(){
+            return SetUpJamConfiguration(configProperties);
+        })
+        .then(function(){
+            for(i=0;i<configProperties.length;i++){
+                if(configPropeties[i].PropertyPath == key){
+                    return configProperties[i].Value;
+                }
+            }
+            return undefined;
+        });
     });
 };
 
 function BackendConfiguration(configProperties){
     console.log("The backend for git-jam is not configured.");
-    return YesNoAsk("Would you like to configure it now? [Y/n]")
+    return YesNoAsk("Would you like to configure it now?")
     .then(function(answer){
+        console.log("\n");
         var backends = listBackends();
         var choices = backends.map(function(elem,i,array){return elem.DisplayName ? elem.DisplayName : elem.ModuleName});
         return RangeAsk("Which backend do you want to use ?", choices)
@@ -36,7 +91,7 @@ function BackendConfiguration(configProperties){
         });
     })
     .then(function(backend){
-        return BackendSpecificPrompts(backend.ConfigurationPrompts,configProperties,false);
+        return BackendSpecificPrompts(backend.ConfigurationPrompts,configProperties,true);
     });
 }
 
@@ -53,13 +108,14 @@ function SetUpJamConfiguration(configProperties){
     var result = When(true);
     configProperties.forEach(function(property){
         result = result.then(function(){
-            return property.Global ? gitUtils.dotJamConfig(propterty.PropertyPath,property.Value) : gitUtils.gitJamConfig(propterty.PropertyPath,property.Value);
+            return property.Global ? gitUtils.dotJamConfig(property.PropertyPath,property.Value) : gitUtils.gitJamConfig(property.PropertyPath,property.Value);
         });
     });
     return result;
 }
 
 function HooksConfiguration(){
+    console.log("\n");
     return YesNoAsk("Would you like to set up hooks for automatic jam files handling?")
     .then(function(yes){
         if(yes){
@@ -71,7 +127,7 @@ function HooksConfiguration(){
 
 function singlePrompt(promptObject,propertiesArray,checkExistingValue){
     var configPath = promptObject.Category + "." + promptObject.Name;
-    var result = checkExistingValue ? When(undefined) : gitUtils.jamConfig(configPath);
+    var result = checkExistingValue ? gitUtils.jamConfig(configPath) : When(undefined);
     return result
     .then(function(currentValue){
         if(currentValue){
@@ -80,6 +136,7 @@ function singlePrompt(promptObject,propertiesArray,checkExistingValue){
             return When(undefined);
         }
         else{
+            console.log("\n");
             if(promptObject.Choices && promptObject.Choices.length > 0){
                 return RangeAsk(promptObject.Prompt, promptObject.Choices.map(function(elem){return elem.Display ? elem.Display : (elem.Value ? elem.Value : elem);}))
                 .then(function(answer){
@@ -109,14 +166,14 @@ function Ask(question){
     var defered = When.defer();
     var r = readline.createInterface({input: process.stdin,output: process.stdout});
     r.question(question + ' ', function(answer) {
-        r.close();
         defered.resolve(answer);
+        r.close();
     });
     return defered.promise;
 }
 
 function YesNoAsk(question){
-    return Ask(question)
+    return Ask(question + " [Y/n]")
     .then(function(answer){
         if(["y","yes"].indexOf(answer.toLowerCase()) >= 0){
             return true;
@@ -145,7 +202,3 @@ function RangeAsk(question,choices){
         return RangeAsk(question,choices);
     });
 }
-var array = [];
-BackendConfiguration(array).then(function(){
-    console.log(JSON.stringify(array,null,"\t"));
-});

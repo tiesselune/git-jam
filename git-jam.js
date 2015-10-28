@@ -9,6 +9,7 @@ var gitUtils = require('./modules/gitUtils.js');
 var filters = require('./modules/filters.js');
 var pullpush = require('./modules/pullpush.js');
 var constants = require('./modules/constants.json');
+var iConfig = require("./modules/interactive-configuration.js");
 var spawn = require('child_process').spawn;
 
 var usage = 'Usage : git-jam (init|filter <extension>|push|pull|config [-g] <property> [<value>]|restore|setup-hooks)';
@@ -49,6 +50,9 @@ function main(args){
 			default :
 				console.log(usage);
 		}
+	})
+	.then(function(){
+		process.stdin.destroy();
 	})
 	.catch(function(err){
 		console.error("The operation failed. Here is the stack trace of the error : ");
@@ -182,6 +186,9 @@ function jamInit(args){
 		fs.writeFileSync(path.join(jamPath,constants.MissingJam),digests.join('\n'));
 		fs.writeFileSync(path.join(jamPath,constants.ToSyncJam),'');
 		return When(true);
+	})
+	.then(function(){
+		return iConfig.InteractiveConfiguration().then(function(){return When(true);});
 	});
 }
 

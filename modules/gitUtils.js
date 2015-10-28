@@ -128,6 +128,7 @@ exports.setUpHooks = function(){
 		else{
 			console.error('A pre-push hook already exists. Pre-push has not been set-up.')
 		}
+		return When(true);
 	});
 }
 
