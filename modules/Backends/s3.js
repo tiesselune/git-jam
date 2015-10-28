@@ -4,6 +4,43 @@ var gitUtils = require('../gitUtils.js');
 var path = require('path');
 var fs = require('fs');
 
+exports.Properties = {
+	DisplayName : "Amazon S3"
+};
+
+exports.ConfigurationPrompts = [
+	{
+		Global : true,
+		Category : "s3",
+		Name : "Region",
+		Prompt : "Please set up the S3 region (ex : eu-west-1) :"
+	},
+	{
+		Global : true,
+		Category : "s3",
+		Name : "Bucket",
+		Prompt : "Please enter the name of your target bucket :"
+	},
+	{
+		Global : true,
+		Category : "s3",
+		Name : "Path",
+		Prompt : "Please set up the path of the target directory in the bucket :\n>",
+	},
+	{
+		Global : false,
+		Category : "s3",
+		Name : "AccessKeyID",
+		Prompt : "Enter your access key ID from Amazon IAM :\n>",
+	},
+	{
+		Global : false,
+		Category : "s3",
+		Name : "SecretAccessKey",
+		Prompt : "Enter your secret access key from Amazon IAM: \n>",
+	}
+];
+
 exports.PushFiles = function(jamPath,digests){
 	var failedDigestList = [];;
 	return configureAWS()
