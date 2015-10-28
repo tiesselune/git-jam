@@ -18,16 +18,64 @@ exports.InteractiveConfiguration = function(){
 
 function BackendConfiguration(){
     console.log("The backend for git-jam is not configured.");
+    var configProperties = [];
     return YesNoAsk("Would you like to configure it now? [Y/n]")
     .then(function(answer){
-        if(answer){
-            var choices = listBackends().map(function(elem,i,array){return elem.DisplayName ? elem.DisplayName : elem.ModuleName});
-            return RangeAsk("Which backend do you want to use ?", choices)
-            .then(function(answer){
-                console.log("You chose " + choices[answer]);
-            });
+        var backends = listBackends();
+        var choices = backends.map(function(elem,i,array){return elem.DisplayName ? elem.DisplayName : elem.ModuleName});
+        return RangeAsk("Which backend do you want to use ?", choices)
+        .then(function(answer){
+            configProperties.push({"PropertyPath" : "backend", Global : true, Value : choices[answer.ModuleName]});
+            return backends[answer].Module;
+        });
+    })
+    .then(function(backend){
+        return backendSpecificPrompts(backend.ConfigurationPrompts,configProperties);
+    });
+}
+
+function backendSpecificPrompts(prompts,propertyObject){
+    var result = When(true);
+    prompts.forEach(function(prompt){
+        result = result
+        .then(function(){return singlePrompt(prompt,propertyObject,false);});
+    });
+    return result;
+}
+
+function singlePrompt(promptObject,propertiesArray,checkExistingValue){
+    var configPath = promptObject.Category + "." + promptObject.Name;
+    var result = checkExistingValue ? When(undefined) : gitUtils.jamConfig(configPath);
+    return result
+    .then(function(currentValue){
+        if(currentValue){
+            var displayedValue = promptObject.Secret ? "*****" : currentValue;
+            console.log(configPath,"already has a value :",displayedValue,"Skipping. \nChange it using `git jam config",configPath);
+            return When(undefined);
         }
-        return;
+        else{
+            if(promptObject.Choices && promptObject.Choices.length > 0){
+                return RangeAsk(promptObject.Prompt, promptObject.Choices.map(function(elem){return elem.Display ? elem.Display : (elem.Value ? elem.Value : elem);}))
+                .then(function(answer){
+                    return promptObject.Choices[answer];
+                });
+            }
+            else{
+                return Ask(promptObject.Prompt);
+            }
+        }
+    })
+    .then(function(value){
+        if(value && value.Value){
+            propertiesArray.push({"PropertyPath" : configPath, Global : promptObject.Global, Value : value.Value});
+            if(value.SubsequentPrompts){
+                return backendSpecificPrompts(value.SubsequentPrompts,propertiesArray);
+            }
+        }
+        else if(value){
+            propertiesArray.push({"PropertyPath" : configPath, Global : promptObject.Global, Value : value});
+        }
+        return When(true);
     });
 }
 
