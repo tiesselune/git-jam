@@ -57,6 +57,7 @@ function main(args){
 	.catch(function(err){
 		console.error("The operation failed. Here is the stack trace of the error : ");
 		console.error(err.stack);
+		process.stdin.destroy();
 	});
 
 }
