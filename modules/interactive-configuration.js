@@ -199,10 +199,12 @@ function singlePrompt(promptObject,propertiesArray,checkExistingValue){
 
 function Ask(question){
     var defered = When.defer();
+    process.stdin.resume();
     var r = readline.createInterface({input: process.stdin,output: process.stdout});
     r.question(question + ' ', function(answer) {
         defered.resolve(answer);
         r.close();
+        process.stdin.pause();
     });
     return defered.promise;
 }

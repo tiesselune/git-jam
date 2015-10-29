@@ -63,11 +63,11 @@ function main(args){
 }
 
 function jamFilterSmudge(){
-	filters.jamSmudgeFilter();
+	return filters.jamSmudgeFilter();
 }
 
 function jamFilterClean(){
-	filters.jamCleanFilter();
+	return filters.jamCleanFilter();
 }
 
 function jamPush(){
