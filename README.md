@@ -1,6 +1,6 @@
 git-jam
 =======
-<div style="text-align:center"><img src ="./git-jam.png" /></div>
+![Git-jam logo](https://raw.githubusercontent.com/tiesselune/git-jam/master/git-jam.png)
 ___
 Yet another binary manager for git, largely inspired by git-fat, but aimed at being more cross-platform
 
