@@ -170,7 +170,6 @@ exports.SSHConnection = function(){
 
 exports.SSHConnection.prototype.connect = function(options){
 	var defered = When.defer();
-
 	this.connection
 	.on('ready',function(){
 		defered.resolve(true);
@@ -218,17 +217,17 @@ exports.SSHConnection.prototype.connectWithKeyPair = function(host,user){
 			console.log("Current path for private SSH key is invalid.");
 			return iConfig.GetConfigWithPrompt('sftp.ssh-keypath',exports)
 			.then(function(){
-				return this->connectWithKeyPair(host,user);
+				return this.connectWithKeyPair(host,user);
 			});
 		}
-	});
+	}.bind(this));
 };
 
 exports.SSHConnection.prototype.connectWithPassword = function(host,user){
 	return iConfig.GetConfigWithPrompt('sftp.password',exports)
 	.then(function(password){
 		return this.connect({host : host,username : user, password : password, port : 22});
-	});
+	}.bind(this));
 };
 
 exports.SSHConnection.prototype.sftp = function(){
