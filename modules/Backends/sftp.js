@@ -195,30 +195,41 @@ exports.SSHConnection.prototype.connectUsingCredentials = function(){
 			case "ssh-agent":
 			return this.connect({host : host, username : user, agent : process.env["SSH_AUTH_SOCK"], port : 22});
 			case "ssh-keypair":
-			return connectWithKeyPair(host,user);
+			return this.connectWithKeyPair(host,user);
 			case "password":
-			return connectWithPassword(host,user);
+			return this.connectWithPassword(host,user);
 			default :
-
+			return this.getConfigWithPrompt('sftp.auth-method',exports)
+			.then(function(){
+				this.connectUsingCredentials();
+			});
 		}
-		/*if(password != null){
-			return this.connect({host : host,username : user, password : password, port : 22});
+	}.bind(this));
+};
+
+exports.SSHConnection.prototype.connectWithKeyPair = function(host,user){
+	return iConfig.GetConfigWithPrompt('sftp.ssh-keypath',exports)
+	.then(function(keypath){
+		var privateKeyPath = path.resolve(getUserHome(),keypath);
+		if(fs.existsSync(privateKeyPath)){
+			return this.connect({host : host,username : user, privateKey : fs.readFileSync(privateKeyPath), port : 22});
 		}
 		else{
-			var privateKeyPath = path.resolve(getUserHome(),'.ssh/id_rsa');
-			// assume ssh-agent is running when the environment variable containing the socket is set
-			if(process.env["SSH_AUTH_SOCK"] != undefined){
-				return this.connect({host : host, username : user, agent : process.env["SSH_AUTH_SOCK"], port : 22});
-			}
-			else if(fs.existsSync(privateKeyPath)){
-				return this.connect({host : host,username : user, privateKey : fs.readFileSync(privateKeyPath), port : 22});
-			}
-			else{
-				throw new Error('Please set up a password for SFTP connection :\n\tgit jam config sftp.password <pswd>\nYou can also set up a SSH key pair in HOME/.ssh.');
-			}
-		}*/
-	}.bind(this));
-}
+			console.log("Current path for private SSH key is invalid.");
+			return iConfig.GetConfigWithPrompt('sftp.ssh-keypath',exports)
+			.then(function(){
+				return this->connectWithKeyPair(host,user);
+			});
+		}
+	});
+};
+
+exports.SSHConnection.prototype.connectWithPassword = function(host,user){
+	return iConfig.GetConfigWithPrompt('sftp.password',exports)
+	.then(function(password){
+		return this.connect({host : host,username : user, password : password, port : 22});
+	});
+};
 
 exports.SSHConnection.prototype.sftp = function(){
 	var defered = When.defer();
