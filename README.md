@@ -1,7 +1,10 @@
 git-jam
 =======
-
+<div style="text-align:center"><img src ="./git-jam.svg" /></div>
+___
 Yet another binary manager for git, largely inspired by git-fat, but aimed at being more cross-platform
+
+
 
 ## TL;DR
 
@@ -63,8 +66,6 @@ Then install it using npm:
 
 ## Usage
 
-> **Important Note : Under windows**, in the git bash environment, `git-jam` can't be invoked in the command-line using `git jam`. Until [this pull request](https://github.com/ForbesLindesay/cmd-shim/pull/4) is merged into `cmd-shim` used by npm, the dash in `git-jam` is mandatory to invoke `git-jam` commands.
-
 ### Configuration
 To enable git-jam, inside a git repo, run :
 
@@ -115,10 +116,12 @@ The main goal `git-jam` is to handle binary or large files out of the git tree.
 Versions of these files should still be saved somewhere. To be more flexible than `git-fat`, `git-jam` allows different backend solutions:
 
 Currently, those backends are supported:
-1. SFTP (FTP through SSH, available wherever SSH exists)
-2. Amazon S3.
+
+   1. SFTP (FTP through SSH, available wherever SSH exists)
+   2. Amazon S3.
 
 Interactive configuration of those backends should happen when running
+
     git jam init
 
 ### Jam file workflow
