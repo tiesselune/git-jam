@@ -10,13 +10,13 @@ var BufferStepSize = 10000000;
 
 exports.jamCleanFilter = function(){
 	var defered = When.defer();
-	var data = new Buffer(BufferStepSize, "binary");
+	var data = new Buffer(BufferStepSize);
 	var blength = 0;
 	process.stdin.resume();
 	process.stdin.on('data',function(chunk){
 		while (blength + chunk.length > data.length)
 		{
-			var nd = new Buffer(data.length + BufferStepSize, "binary");
+			var nd = new Buffer(data.length + BufferStepSize);
 			data.copy(nd);
 			data = nd;
 		}
@@ -46,13 +46,13 @@ exports.jamCleanFilter = function(){
 
 exports.jamSmudgeFilter = function(){
 	var defered = When.defer();
-	var data = new Buffer(BufferStepSize, "binary");
+	var data = new Buffer(BufferStepSize);
 	var blength = 0;
 	process.stdin.resume();
 	process.stdin.on('data',function(chunk){
 		while (blength + chunk.length > data.length)
 		{
-			var nd = new Buffer(data.length + BufferStepSize, "binary");
+			var nd = new Buffer(data.length + BufferStepSize);
 			data.copy(nd);
 			data = nd;
 		}
