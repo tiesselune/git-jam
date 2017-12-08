@@ -1,10 +1,8 @@
-var When = require('when');
 var fs = require('fs');
 var path = require('path');
 var gitUtils = require('./gitUtils.js');
 var jamFile = require('./jamFile.js');
 var constants = require('./constants.json');
-var When = require('when');
 
 var BufferStepSize = 10000000;
 

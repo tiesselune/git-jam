@@ -1,5 +1,4 @@
 var ssh2 = require('ssh2');
-var When = require('when');
 var gitUtils = require('../gitUtils.js');
 var iConfig = require("../interactive-configuration.js");
 var path = require('path');
@@ -92,14 +91,14 @@ exports.PushFiles = function(jamPath,digests){
 		if(remoteSystem !== undefined && ["win32","windows"].indexOf(remoteSystem.toLowerCase()) >= 0){
 			pathSeparator = "\\";
 		}
-		let promiseChain = When(true);
+		let promiseChain = Promise.resolve(true);
 		digests.forEach(function(digest){
 			promiseChain = promiseChain.then(function(){
 				return sftp.fastPut(path.join(jamPath, digest),remotePath + pathSeparator + digest,{});
 			})
 			.then(function(){
 				console.log('Pushed',digest +'.');
-				return When(true);
+				return Promise.resolve(true);
 			})
 			.catch(function(err){
 				failedDigestList.push(digest);
@@ -110,7 +109,7 @@ exports.PushFiles = function(jamPath,digests){
 	})
 	.then(function(){
 		sshConn.end();
-		return When(failedDigestList);
+		return Promise.resolve(failedDigestList);
 	})
 	.catch(function(err){
 		try{
@@ -135,14 +134,14 @@ exports.PullFiles = function(jamPath,digests){
 		if(remoteSystem !== undefined && ["win32","windows"].indexOf(remoteSystem.toLowerCase()) >= 0){
 			pathSeparator = "\\";
 		}
-		let promiseChain = When(true);
+		let promiseChain = Promise.resolve(true);
 		digests.forEach(function(digest){
 			promiseChain = promiseChain.then(function(){
 				return sftp.fastGet(remotePath + pathSeparator + digest,path.join(jamPath,digest),{});
 			})
 			.then(function(){
 				console.log('Pulled',digest + '.');
-				return When(true);
+				return Promise.resolve(true);
 			})
 			.catch(function(err){
 				failedDigestList.push(digest);
@@ -153,7 +152,7 @@ exports.PullFiles = function(jamPath,digests){
 	})
 	.then(function(){
 		sshConn.end();
-		return When(failedDigestList);
+		return Promise.resolve(failedDigestList);
 	})
 	.catch(function(err){
 		try{

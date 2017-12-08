@@ -1,5 +1,4 @@
 var aws = require('aws-sdk');
-var When = require('when');
 var gitUtils = require('../gitUtils.js');
 var iConfig = require("../interactive-configuration.js");
 var path = require('path');
@@ -51,7 +50,7 @@ exports.PushFiles = function(jamPath,digests){
 	.then(function(config){
 		const bucket = config[0];
 		const basePath = config[1];
-		let promiseChain = When(true);
+		let promiseChain = Promise.resolve(true);
         const s3 = new S3(bucket);
         const cleanBasePath = basePath[basePath.length - 1] == "/" ?  basePath : basePath + "/";
 		digests.forEach(function(digest){
@@ -60,7 +59,7 @@ exports.PushFiles = function(jamPath,digests){
 			})
 			.then(function(){
 				console.log('Pushed',digest +'.');
-				return When(true);
+				return Promise.resolve(true);
 			})
 			.catch(function(err){
 				failedDigestList.push(digest);
@@ -70,7 +69,7 @@ exports.PushFiles = function(jamPath,digests){
 		return promiseChain;
 	})
     .then(function(){
-        return When(failedDigestList);
+        return Promise.resolve(failedDigestList);
     });
 };
 
@@ -83,7 +82,7 @@ exports.PullFiles = function(jamPath,digests){
 	.then(function(config){
 		const bucket = config[0];
 		const basePath = config[1];
-		let promiseChain = When(true);
+		let promiseChain = Promise.resolve(true);
         const s3 = new S3(bucket);
         const cleanBasePath = basePath[basePath.length - 1] == "/" ?  basePath : basePath + "/";
 		digests.forEach(function(digest){
@@ -93,7 +92,7 @@ exports.PullFiles = function(jamPath,digests){
 			.then(function(data){
                 fs.writeFileSync(path.join(jamPath,digest),data);
 				console.log('Pulled',digest +'.');
-				return When(true);
+				return Promise.resolve(true);
 			})
 			.catch(function(err){
 				failedDigestList.push(digest);
@@ -103,7 +102,7 @@ exports.PullFiles = function(jamPath,digests){
 		return promiseChain;
 	})
     .then(function(){
-        return When(failedDigestList);
+        return Promise.resolve(failedDigestList);
     });
 };
 
@@ -113,7 +112,7 @@ function configureAWS(){
         aws.config.accessKeyId = values[0];
         aws.config.secretAccessKey = values[1];
         aws.config.region = values[2];
-        return When(true);
+        return Promise.resolve(true);
     });
 }
 
@@ -137,7 +136,6 @@ S3.prototype.UploadFile = function(localPath,remotePath){
 
 S3.prototype.DownloadFile = function(path){
 	return new Promise(function(resolve,reject){
-		var defered = When.defer();
 		this.bucket.getObject({Key : path},function(err,data){
 			if(err){
 				reject(err);

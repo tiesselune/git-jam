@@ -25,8 +25,7 @@
   },
   "dependencies": {
     "aws-sdk": "^2.1.50",
-    "ssh2": "^0.3.6",
-    "when": "3.5.x"
+    "ssh2": "^0.3.6"
   },
   "bugs": {
     "url": "https://github.com/tiesselune/git-jam/issues"

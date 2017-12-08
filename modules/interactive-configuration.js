@@ -1,4 +1,3 @@
-const When = require('when');
 const gitUtils = require('./gitUtils.js');
 const readline = require('readline');
 const listBackends = require('./Backends/list.js');
@@ -24,7 +23,7 @@ exports.InteractiveConfiguration = function(){
     })
     .then(function(){
         console.log("Interactive configuration completed.");
-        return When(true);
+        return Promise.resolve(true);
     });
 };
 
@@ -62,7 +61,7 @@ exports.GetConfigWithPrompt = function(key,backend){
                 promise = Ask("Necessary config value " + key + "is not set.\n Please enter a value now :")
                 .then(function(answer){
                     configProperties.push({PropertyPath : key, Global : false, Value : answer});
-                    return When(true);
+                    return Promise.resolve(true);
                 });
             }
         }
@@ -83,7 +82,7 @@ exports.GetConfigWithPrompt = function(key,backend){
 
 function getConfigWithPromptArray(keys,backend){
     let values = [];
-    let promise = When(true);
+    let promise = Promise.resolve(true);
     keys.forEach(function(key){
         promise = promise.then(function(){
             return exports.GetConfigWithPrompt(key,backend);
@@ -117,7 +116,7 @@ function BackendConfiguration(configProperties){
 }
 
 function BackendSpecificPrompts(prompts,propertyObject,checkExistingValues){
-    let result = When(true);
+    let result = Promise.resolve(true);
     prompts.forEach(function(prompt){
         result = result
         .then(function(){return singlePrompt(prompt,propertyObject,checkExistingValues);});
@@ -126,7 +125,7 @@ function BackendSpecificPrompts(prompts,propertyObject,checkExistingValues){
 }
 
 function SetUpJamConfiguration(configProperties){
-    let result = When(true);
+    let result = Promise.resolve(true);
     configProperties.forEach(function(property){
         result = result.then(function(){
             return property.Global ? gitUtils.dotJamConfig(property.PropertyPath,property.Value) : gitUtils.gitJamConfig(property.PropertyPath,property.Value);
@@ -142,22 +141,22 @@ function HooksConfiguration(){
         if(yes){
             return gitUtils.setUpHooks();
         }
-        return When(true);
+        return Promise.resolve(true);
     });
 }
 
 function singlePrompt(promptObject,propertiesArray,checkExistingValue){
     const configPath = promptObject.Category + "." + promptObject.Name;
-    let result = checkExistingValue ? gitUtils.jamConfig(configPath) : When(undefined);
+    let result = checkExistingValue ? gitUtils.jamConfig(configPath) : Promise.resolve(undefined);
     return result
     .then(function(currentValue){
         if(currentValue){
             const displayedValue = promptObject.Secret ? "*****" : currentValue;
             console.log(configPath,"already has a value :",displayedValue,"Skipping. \nChange it using `git jam config",configPath);
-            return When(undefined);
+            return Promise.resolve(undefined);
         }
         else{
-            let promise = When(true);
+            let promise = Promise.resolve(true);
             console.log("\n");
             if(promptObject.Choices && promptObject.Choices.length > 0){
                 promise = RangeAsk(promptObject.Prompt, promptObject.Choices.map(function(elem){return elem.Display ? elem.Display : (elem.Value ? elem.Value : elem);}))
@@ -194,7 +193,7 @@ function singlePrompt(promptObject,propertiesArray,checkExistingValue){
         else if(value){
             propertiesArray.push({PropertyPath : configPath, Global : promptObject.Global, Value : value});
         }
-        return When(true);
+        return Promise.resolve(true);
     });
 }
 

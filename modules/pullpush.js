@@ -1,4 +1,3 @@
-var When = require('when');
 var gitUtils = require('./gitUtils.js');
 var jamFile = require('./jamFile.js');
 var path = require('path');
@@ -6,8 +5,9 @@ var fs = require('fs');
 var constants = require('./constants.json');
 
 exports.pull = function(){
-	return When.all([gitUtils.jamConfig('backend'),gitUtils.getJamPath()])
-	.spread(function(back,jamPath){
+	return Promise.all([gitUtils.jamConfig('backend'),gitUtils.getJamPath()])
+	.then(function(res){
+		const [back,jamPath] = res;
 		const backend = back? back : "sftp";
 		const digests = fs.readFileSync(path.join(jamPath,constants.MissingJam),'utf-8').split('\n');
 		if(digests[digests.length - 1] == ""){
@@ -16,7 +16,8 @@ exports.pull = function(){
 		console.log('Preparing to pull',digests.length,'object(s).');
 		return [require('./Backends/' + backend).PullFiles(jamPath,digests),digests.length,jamPath];
 	})
-	.spread(function(failedObjects,numberOfObjects,jamPath){
+	.then(function(res){
+		const [failedObjects,numberOfObjects,jamPath] = res;
 		console.log('\nPulled',numberOfObjects - failedObjects.length,'object(s).');
 		if(failedObjects.length !== 0){
 			console.error('/!\\ Could not pull',failedObjects.length,'object(s).');
@@ -29,8 +30,9 @@ exports.pull = function(){
 };
 
 exports.push = function(){
-	return When.all([gitUtils.jamConfig('backend'),gitUtils.getJamPath()])
-	.spread(function(back,jamPath){
+	return Promise.all([gitUtils.jamConfig('backend'),gitUtils.getJamPath()])
+	.then(function(res){
+		const [back,jamPath] = res;
 		const backend = back? back : "sftp";
 		const digests = fs.readFileSync(path.join(jamPath,constants.ToSyncJam),'utf-8').split('\n');
 		if(digests[digests.length - 1] == ""){
@@ -39,13 +41,14 @@ exports.push = function(){
 		console.log('Preparing to push',digests.length,'object(s).');
 		return [require('./Backends/' + backend).PushFiles(jamPath,digests),digests.length,jamPath];
 	})
-	.spread(function(failedObjects,numberOfObjects,jamPath){
+	.then(function(res){
+		const [failedObjects,numberOfObjects,jamPath] = res;
 		console.log('\nPushed',numberOfObjects - failedObjects.length,'object(s).');
 		if(failedObjects.length !== 0){
 			console.error('/!\\ Could not push',failedObjects.length,'object(s).');
 		}
 		fs.writeFileSync(path.join(jamPath,constants.ToSyncJam),failedObjects.join('\n'));
-		return When(true);
+		return Promise.resolve(true);
 	})
 	.then(function(res){
 		console.log('\nDone.');
@@ -58,7 +61,8 @@ exports.restoreFiles = function(){
 	.then(function(files){
 		return [gitUtils.filteredFiles(files),gitUtils.getJamPath()];
 	})
-	.spread(function(files,jamPath){
+	.then(function(res){
+		const [files,jamPath] = res;
 		console.log('Considering',files.length,'jam file(s).');
 		let skippedFiles = [];
 		files.forEach(function(file){
