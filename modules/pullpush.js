@@ -8,8 +8,8 @@ var constants = require('./constants.json');
 exports.pull = function(){
 	return When.all([gitUtils.jamConfig('backend'),gitUtils.getJamPath()])
 	.spread(function(back,jamPath){
-		var backend = back? back : "sftp";
-		var digests = fs.readFileSync(path.join(jamPath,constants.MissingJam),'utf-8').split('\n');
+		const backend = back? back : "sftp";
+		const digests = fs.readFileSync(path.join(jamPath,constants.MissingJam),'utf-8').split('\n');
 		if(digests[digests.length - 1] == ""){
 			digests = digests.slice(0, digests.length - 1);
 		}
@@ -31,8 +31,8 @@ exports.pull = function(){
 exports.push = function(){
 	return When.all([gitUtils.jamConfig('backend'),gitUtils.getJamPath()])
 	.spread(function(back,jamPath){
-		var backend = back? back : "sftp";
-		var digests = fs.readFileSync(path.join(jamPath,constants.ToSyncJam),'utf-8').split('\n');
+		const backend = back? back : "sftp";
+		const digests = fs.readFileSync(path.join(jamPath,constants.ToSyncJam),'utf-8').split('\n');
 		if(digests[digests.length - 1] == ""){
 			digests = digests.slice(0, digests.length - 1);
 		}
@@ -60,11 +60,11 @@ exports.restoreFiles = function(){
 	})
 	.spread(function(files,jamPath){
 		console.log('Considering',files.length,'jam file(s).');
-		var skippedFiles = [];
+		let skippedFiles = [];
 		files.forEach(function(file){
 			if(jamFile.mightBeJam(file)){
-				var digest = jamFile.getDigestFromJam(file);
-				var jamFilePath = path.join(jamPath,digest);
+				const digest = jamFile.getDigestFromJam(file);
+				const jamFilePath = path.join(jamPath,digest);
 				if(digest != "" && fs.existsSync(jamFilePath)){
 					console.log('Restoring',file,":",digest)
 					fs.writeFileSync(file,fs.readFileSync(jamFilePath));
@@ -78,14 +78,14 @@ exports.restoreFiles = function(){
 		if(skippedFiles.length > 0){
 			console.error("/!\\ Could not restore",skippedFiles.length,"file(s).");
 		}
-		var digestArray = skippedFiles.map(function(obj){return obj.Digest;});
+		const digestArray = skippedFiles.map(function(obj){return obj.Digest;});
 		fs.writeFileSync(path.join(jamPath,constants.MissingJam),digestArray.join('\n'));
 		return skippedFiles;
 	});
 };
 
 exports.getCheckedOutJamFiles = function(){
-	var digests = [];
+	let digests = [];
 	return gitUtils.lsFiles()
 	.then(function(files){
 		return gitUtils.filteredFiles(files);

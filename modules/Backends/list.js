@@ -2,16 +2,16 @@ var fs = require('fs');
 var path = require("path");
 
 module.exports = function(){
-    var files = fs.readdirSync(__dirname);
-    var backends = [];
+    const files = fs.readdirSync(__dirname);
+    let backends = [];
     files.forEach(function(element){
-        var jsReg = /.*\.js$/gi;
+        const jsReg = /.*\.js$/gi;
         if(element !== "list.js" && jsReg.exec(element)){
-            var stats = fs.statSync(path.join(__dirname, element));
+            const stats = fs.statSync(path.join(__dirname, element));
             if(stats && stats.isFile()){
-                var backend = require("./" + element);
+                const backend = require("./" + element);
                 if(backend.ConfigurationPrompts && backend.PushFiles && backend.PullFiles){
-                    var backendDescription = {ModuleName : element.substr(0,element.length - 3), Module : backend};
+                    const backendDescription = {ModuleName : element.substr(0,element.length - 3), Module : backend};
                     if(backend.Properties && backend.Properties.DisplayName){
                         backendDescription.DisplayName = backend.Properties.DisplayName;
                     }

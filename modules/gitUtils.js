@@ -1,18 +1,17 @@
-var When = require('when');
-var fs = require('fs');
-var path = require('path');
-var childProcess = require('child_process');
+const fs = require('fs');
+const path = require('path');
+const childProcess = require('child_process');
 
-var JamPath = "";
+let JamPath = "";
 
 exports.getJamPath = function(){
 	if(JamPath != ""){
-		return When(JamPath);
+		return Promise.resolve(JamPath);
 	}
 	else{
 		return exec('git rev-parse --git-dir')
 		.then(function(res){
-			var jamPath = path.join(path.join.apply(this,[ res[0] == "/" ? res[0] : ""].concat(res.trim().split('/'))),'jam');
+			const jamPath = path.join(path.join.apply(this,[ res[0] == "/" ? res[0] : ""].concat(res.trim().split('/'))),'jam');
 			return jamPath;
 		})
 		.catch(function(err){
@@ -28,7 +27,7 @@ exports.config = function(param,value){
 exports.gitJamConfig = function(param,value){
 	return exports.config('jam.' + param,value)
 	.catch(function(err){
-		return When(undefined);
+		return Promise.resolve(undefined);
 	});
 };
 
@@ -51,30 +50,31 @@ exports.jamConfig = function(param){
 		if(value === undefined){
 			return exports.dotJamConfig(param);
 		}
-		return When(value);
+		return Promise.resolve(value);
 	});
 }
 
 exports.lsFiles = function(){
 	return exec('git ls-tree --name-only --full-tree -z -r HEAD')
 	.then(function(res){
-		var files = res.split('\0');
+		const files = res.split('\0');
 		return files.map(function(file){return '"' + file +'"';});
 	});
 };
 
 exports.filteredFiles = function(files){
-	var i,j,chunk = 30;
-	var fileChunks = [];
+	let i,j,chunk = 30;
+	let fileChunks = [];
 	for (i=0,j=files.length; i<j; i+=chunk) {
 		fileChunks.push(files.slice(i,i+chunk));
 	}
-	var promises = fileChunks.map(function(chunk){
+	let promises = fileChunks.map(function(chunk){
 			return exec('git check-attr -z filter ' + chunk.join(' '))
 			.then(function(res){
-				var finalFiles = [];
-				var words = res.split('\0');
-				for(var k = 0; k< words.length;k += 3){
+				let finalFiles = [];
+				const words = res.split('\0');
+				let k = 0;
+				for(k = 0; k< words.length;k += 3){
 					if(words[k+2] == 'jam'){
 						finalFiles.push(words[k]);
 					}
@@ -82,9 +82,9 @@ exports.filteredFiles = function(files){
 				return finalFiles;
 			});
 		});
-	return When.all(promises)
+	return Promise.all(promises)
 	.then(function(array){
-		var result = [];
+		let result = [];
 		array.forEach(function(filteredFilesChunk){
 			result = result.concat(filteredFilesChunk);
 		});
@@ -93,17 +93,17 @@ exports.filteredFiles = function(files){
 };
 
 exports.setUpHooks = function(){
-	var bang = "#!/bin/sh\n\n";
-	var exit = "exit 0";
-	var prePush = bang + "git-jam push\n\n" + exit;
-	var postCheckout = bang + "git-jam pull\n\n" + exit;
-	var postMerge = bang + "git-jam pull\n\n" + exit;
+	const bang = "#!/bin/sh\n\n";
+	const exit = "exit 0";
+	const prePush = bang + "git-jam push\n\n" + exit;
+	const postCheckout = bang + "git-jam pull\n\n" + exit;
+	const postMerge = bang + "git-jam pull\n\n" + exit;
 	return exports.getJamPath()
 	.then(function(jamPath){
-		var hooks = path.resolve(jamPath,"..","hooks");
-		var postCheckoutPath = path.join(hooks,"post-checkout");
-		var postMergePath = path.join(hooks,"post-merge");
-		var prePushPath = path.join(hooks,"pre-push");
+		const hooks = path.resolve(jamPath,"..","hooks");
+		const postCheckoutPath = path.join(hooks,"post-checkout");
+		const postMergePath = path.join(hooks,"post-merge");
+		const prePushPath = path.join(hooks,"pre-push");
 		if(!fs.existsSync(postCheckoutPath)){
 			fs.writeFileSync(postCheckoutPath,postCheckout);
 			fs.chmodSync(postCheckoutPath, "755");
@@ -128,28 +128,28 @@ exports.setUpHooks = function(){
 		else{
 			console.error('A pre-push hook already exists. Pre-push has not been set-up.')
 		}
-		return When(true);
+		return Promise.resolve(true);
 	});
 }
 
 function exec(command){
-	var defered = When.defer();
-	childProcess.exec(command,{maxBuffer: 1024 * 1024},function(err,stdout){
-		if(err){
-			defered.reject(new Error(err));
-		}else{
-			var res = stdout;
-			if(res[res.length -1] == '\n'){
-				res = res.slice(0,res.length-1);
+	return new Promise(function(resolve,reject){
+		childProcess.exec(command,{maxBuffer: 1024 * 1024},function(err,stdout){
+			if(err){
+				reject(new Error(err));
+			}else{
+				let res = stdout;
+				if(res[res.length -1] == '\n'){
+					res = res.slice(0,res.length-1);
+				}
+				resolve(res);
 			}
-			defered.resolve(res);
-		}
+		});
 	});
-	return defered.promise;
 }
 
 function getDottedObjectProperty(property,object){
-	var properties = property.split('.');
+	const properties = property.split('.');
 	if(typeof object != 'object'){
 		return undefined;
 	}
@@ -164,7 +164,7 @@ function getDottedObjectProperty(property,object){
 }
 
 function setDottedObjectProperty(property,object,value){
-	var properties = property.split('.');
+	const properties = property.split('.');
 	if(properties.length == 1){
 		object[properties[0]] = value;
 	}else{
@@ -178,7 +178,7 @@ function setDottedObjectProperty(property,object,value){
 function getDotJamJSON(){
 	return exports.getJamPath()
 	.then(function(jamPath){
-		var dotJamPath = path.resolve(jamPath,'../../.jamconfig');
+		const dotJamPath = path.resolve(jamPath,'../../.jamconfig');
 		if(fs.existsSync(dotJamPath)){
 			return JSON.parse(fs.readFileSync(dotJamPath,'utf8'));
 		}
@@ -191,7 +191,7 @@ function getDotJamJSON(){
 function setDotJamJSON(object){
 	return exports.getJamPath()
 	.then(function(jamPath){
-		var dotJamPath = path.resolve(jamPath,'../../.jamconfig');
+		const dotJamPath = path.resolve(jamPath,'../../.jamconfig');
 		fs.writeFileSync(dotJamPath,JSON.stringify(object,null,'\t'));
 	});
 }

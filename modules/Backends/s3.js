@@ -43,17 +43,17 @@ exports.ConfigurationPrompts = [
 ];
 
 exports.PushFiles = function(jamPath,digests){
-	var failedDigestList = [];;
+	let failedDigestList = [];;
 	return configureAWS()
 	.then(function(){
 		return iConfig.GetConfigWithPrompt(['s3.Bucket','s3.Path'],exports);
 	})
 	.then(function(config){
-		var bucket = config[0];
-		var basePath = config[1];
-		var promiseChain = When(true);
-        var s3 = new S3(bucket);
-        var cleanBasePath = basePath[basePath.length - 1] == "/" ?  basePath : basePath + "/";
+		const bucket = config[0];
+		const basePath = config[1];
+		let promiseChain = When(true);
+        const s3 = new S3(bucket);
+        const cleanBasePath = basePath[basePath.length - 1] == "/" ?  basePath : basePath + "/";
 		digests.forEach(function(digest){
 			promiseChain = promiseChain.then(function(){
 				return s3.UploadFile(path.join(jamPath,digest),cleanBasePath + splitHash(digest));
@@ -75,17 +75,17 @@ exports.PushFiles = function(jamPath,digests){
 };
 
 exports.PullFiles = function(jamPath,digests){
-    var failedDigestList = [];;
+    let failedDigestList = [];;
 	return configureAWS()
 	.then(function(){
 		return iConfig.GetConfigWithPrompt(['s3.Bucket','s3.Path'],exports);
 	})
 	.then(function(config){
-		var bucket = config[0];
-		var basePath = config[1];
-		var promiseChain = When(true);
-        var s3 = new S3(bucket);
-        var cleanBasePath = basePath[basePath.length - 1] == "/" ?  basePath : basePath + "/";
+		const bucket = config[0];
+		const basePath = config[1];
+		let promiseChain = When(true);
+        const s3 = new S3(bucket);
+        const cleanBasePath = basePath[basePath.length - 1] == "/" ?  basePath : basePath + "/";
 		digests.forEach(function(digest){
 			promiseChain = promiseChain.then(function(){
 				return s3.DownloadFile(cleanBasePath + splitHash(digest));
@@ -122,30 +122,31 @@ function S3(bucketName, path){
 }
 
 S3.prototype.UploadFile = function(localPath,remotePath){
-    var defered = When.defer();
-    var content = fs.readFileSync(localPath);
-    this.bucket.upload({Key : remotePath, Body : content},function(err,data){
-        if(err){
-            defered.reject(err);
-        }
-        else{
-            defered.resolve(data);
-        }
-    });
-    return defered.promise;
+    return new Promise(function(resolve,reject){
+		const content = fs.readFileSync(localPath);
+	    this.bucket.upload({Key : remotePath, Body : content},function(err,data){
+	        if(err){
+	            reject(err);
+	        }
+	        else{
+	            resolve(data);
+	        }
+	    });
+	}.bind(this));
 }
 
 S3.prototype.DownloadFile = function(path){
-    var defered = When.defer();
-    this.bucket.getObject({Key : path},function(err,data){
-        if(err){
-            defered.reject(err);
-        }
-        else{
-            defered.resolve(data.Body);
-        }
-    });
-    return defered.promise;
+	return new Promise(function(resolve,reject){
+		var defered = When.defer();
+		this.bucket.getObject({Key : path},function(err,data){
+			if(err){
+				reject(err);
+			}
+			else{
+				resolve(data.Body);
+			}
+		});
+	}.bind(this));
 }
 
 function splitHash(hash){

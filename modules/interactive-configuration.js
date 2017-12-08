@@ -1,10 +1,10 @@
-var When = require('when');
-var gitUtils = require('./gitUtils.js');
-var readline = require('readline');
-var listBackends = require('./Backends/list.js');
+const When = require('when');
+const gitUtils = require('./gitUtils.js');
+const readline = require('readline');
+const listBackends = require('./Backends/list.js');
 
 exports.InteractiveConfiguration = function(){
-    var configProperties = [];
+    let configProperties = [];
     return gitUtils.jamConfig("backend")
     .then(function(backendName){
         if(backendName){
@@ -29,8 +29,8 @@ exports.InteractiveConfiguration = function(){
 };
 
 exports.GetConfigWithPrompt = function(key,backend){
-    var configProperties = [];
-    var i = 0;
+    let configProperties = [];
+    let i = 0;
     if(key && key instanceof Array){
         return getConfigWithPromptArray(key,backend);
     }
@@ -39,16 +39,16 @@ exports.GetConfigWithPrompt = function(key,backend){
         if(value){
             return value;
         }
-        var promise = When(true);
+        let promise = new Promise(true);
         if(key == "backend"){
             promise = BackendConfiguration(configProperties);
         }
         else{
-            var prompt;
+            let prompt;
             if(backend){
                 for(i=0;i<backend.ConfigurationPrompts.length;i++){
-                    var element = backend.ConfigurationPrompts[i];
-                    var path = element.Category+ "." + element.Name;
+                    const element = backend.ConfigurationPrompts[i];
+                    const path = element.Category+ "." + element.Name;
                     if(key == path){
                         prompt = element;
                         break;
@@ -80,9 +80,10 @@ exports.GetConfigWithPrompt = function(key,backend){
     });
 };
 
+
 function getConfigWithPromptArray(keys,backend){
-    var values = [];
-    var promise = When(true);
+    let values = [];
+    let promise = When(true);
     keys.forEach(function(key){
         promise = promise.then(function(){
             return exports.GetConfigWithPrompt(key,backend);
@@ -102,8 +103,8 @@ function BackendConfiguration(configProperties){
     return YesNoAsk("Would you like to configure it now?")
     .then(function(answer){
         console.log("\n");
-        var backends = listBackends();
-        var choices = backends.map(function(elem,i,array){return elem.DisplayName ? elem.DisplayName : elem.ModuleName});
+        const backends = listBackends();
+        const choices = backends.map(function(elem,i,array){return elem.DisplayName ? elem.DisplayName : elem.ModuleName});
         return RangeAsk("Which backend do you want to use ?", choices)
         .then(function(answer){
             configProperties.push({PropertyPath : "backend", Global : true, Value : backends[answer].ModuleName});
@@ -116,7 +117,7 @@ function BackendConfiguration(configProperties){
 }
 
 function BackendSpecificPrompts(prompts,propertyObject,checkExistingValues){
-    var result = When(true);
+    let result = When(true);
     prompts.forEach(function(prompt){
         result = result
         .then(function(){return singlePrompt(prompt,propertyObject,checkExistingValues);});
@@ -125,7 +126,7 @@ function BackendSpecificPrompts(prompts,propertyObject,checkExistingValues){
 }
 
 function SetUpJamConfiguration(configProperties){
-    var result = When(true);
+    let result = When(true);
     configProperties.forEach(function(property){
         result = result.then(function(){
             return property.Global ? gitUtils.dotJamConfig(property.PropertyPath,property.Value) : gitUtils.gitJamConfig(property.PropertyPath,property.Value);
@@ -146,17 +147,17 @@ function HooksConfiguration(){
 }
 
 function singlePrompt(promptObject,propertiesArray,checkExistingValue){
-    var configPath = promptObject.Category + "." + promptObject.Name;
-    var result = checkExistingValue ? gitUtils.jamConfig(configPath) : When(undefined);
+    const configPath = promptObject.Category + "." + promptObject.Name;
+    let result = checkExistingValue ? gitUtils.jamConfig(configPath) : When(undefined);
     return result
     .then(function(currentValue){
         if(currentValue){
-            var displayedValue = promptObject.Secret ? "*****" : currentValue;
+            const displayedValue = promptObject.Secret ? "*****" : currentValue;
             console.log(configPath,"already has a value :",displayedValue,"Skipping. \nChange it using `git jam config",configPath);
             return When(undefined);
         }
         else{
-            var promise = When(true);
+            let promise = When(true);
             console.log("\n");
             if(promptObject.Choices && promptObject.Choices.length > 0){
                 promise = RangeAsk(promptObject.Prompt, promptObject.Choices.map(function(elem){return elem.Display ? elem.Display : (elem.Value ? elem.Value : elem);}))
@@ -172,7 +173,7 @@ function singlePrompt(promptObject,propertiesArray,checkExistingValue){
             }
             if(promptObject.Validate){
                 promise = promise.then(function(value){
-                    var validationMessage = promptObject.Validate(value);
+                    const validationMessage = promptObject.Validate(value);
                     if(validationMessage === ""){
                         return value;
                     }
@@ -198,15 +199,16 @@ function singlePrompt(promptObject,propertiesArray,checkExistingValue){
 }
 
 function Ask(question){
-    var defered = When.defer();
-    process.stdin.resume();
-    var r = readline.createInterface({input: process.stdin,output: process.stdout});
-    r.question(question + ' ', function(answer) {
-        defered.resolve(answer);
-        r.close();
-        process.stdin.pause();
+    var promise = new Promise(function(resolve,reject){
+        process.stdin.resume();
+        var r = readline.createInterface({input: process.stdin,output: process.stdout});
+        r.question(question + ' ', function(answer) {
+            r.close();
+            process.stdin.pause();
+            resolve(answer);
+        });
     });
-    return defered.promise;
+    return promise;
 }
 
 function YesNoAsk(question){
@@ -234,8 +236,8 @@ function DefaultAsk(question,def){
 }
 
 function RangeAsk(question,choices){
-    var questionWithChoices = question;
-    var i = 0;
+    let questionWithChoices = question;
+    let i = 0;
     for(i = 0; i< choices.length; i++){
         questionWithChoices += "\n\t" + (i + 1) + ". " + choices[i];
     }

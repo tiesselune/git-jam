@@ -79,20 +79,20 @@ exports.ConfigurationPrompts = [
 ];
 
 exports.PushFiles = function(jamPath,digests){
-	var failedDigestList = [];
-	var sshConn = new exports.SSHConnection();
+	let failedDigestList = [];
+	const sshConn = new exports.SSHConnection();
 	return sshConn.connectUsingCredentials()
 	.then(function(){
 		return [sshConn.sftp(),iConfig.GetConfigWithPrompt(['sftp.path','sftp.system'],exports)];
 	})
 	.spread(function(sftp,configArray){
-		var remotePath = configArray[0];
-		var remoteSystem = configArray[1];
-		var pathSeparator = "/";
+		const remotePath = configArray[0];
+		const remoteSystem = configArray[1];
+		let pathSeparator = "/";
 		if(remoteSystem !== undefined && ["win32","windows"].indexOf(remoteSystem.toLowerCase()) >= 0){
 			pathSeparator = "\\";
 		}
-		var promiseChain = When(true);
+		let promiseChain = When(true);
 		digests.forEach(function(digest){
 			promiseChain = promiseChain.then(function(){
 				return sftp.fastPut(path.join(jamPath, digest),remotePath + pathSeparator + digest,{});
@@ -122,20 +122,20 @@ exports.PushFiles = function(jamPath,digests){
 };
 
 exports.PullFiles = function(jamPath,digests){
-	var failedDigestList = [];
-	var sshConn = new exports.SSHConnection();
+	let failedDigestList = [];
+	const sshConn = new exports.SSHConnection();
 	return sshConn.connectUsingCredentials()
 	.then(function(){
 		return [sshConn.sftp(),iConfig.GetConfigWithPrompt(['sftp.path','sftp.system'],exports)];
 	})
 	.spread(function(sftp,configArray){
-		var remotePath = configArray[0];
-		var remoteSystem = configArray[1];
-		var pathSeparator = "/";
+		const remotePath = configArray[0];
+		const remoteSystem = configArray[1];
+		let pathSeparator = "/";
 		if(remoteSystem !== undefined && ["win32","windows"].indexOf(remoteSystem.toLowerCase()) >= 0){
 			pathSeparator = "\\";
 		}
-		var promiseChain = When(true);
+		let promiseChain = When(true);
 		digests.forEach(function(digest){
 			promiseChain = promiseChain.then(function(){
 				return sftp.fastGet(remotePath + pathSeparator + digest,path.join(jamPath,digest),{});
@@ -169,25 +169,24 @@ exports.SSHConnection = function(){
 }
 
 exports.SSHConnection.prototype.connect = function(options){
-	var defered = When.defer();
-	this.connection
-	.on('ready',function(){
-		defered.resolve(true);
-	})
-	.on('error',function(err){
-		defered.reject(err);
-	})
-	.connect(options);
-
-	return defered.promise;
+	return new Promise(function(resolve,reject){
+		this.connection
+		.on('ready',function(){
+			resolve(true);
+		})
+		.on('error',function(err){
+			reject(err);
+		})
+		.connect(options);
+	}.bind(this));
 };
 
 exports.SSHConnection.prototype.connectUsingCredentials = function(){
 	return iConfig.GetConfigWithPrompt(['sftp.host','sftp.user','sftp.auth-method'],exports)
 	.then(function(config){
-		var host = config[0];
-		var user = config[1];
-		var authMethod = config[2];
+		const host = config[0];
+		const user = config[1];
+		const authMethod = config[2];
 		switch(authMethod){
 			case "pageant":
 			return this.connect({host : host, username : user, agent : "pageant", port : 22});
@@ -209,7 +208,7 @@ exports.SSHConnection.prototype.connectUsingCredentials = function(){
 exports.SSHConnection.prototype.connectWithKeyPair = function(host,user){
 	return iConfig.GetConfigWithPrompt('sftp.ssh-keypath',exports)
 	.then(function(keypath){
-		var privateKeyPath = path.resolve(getUserHome(),keypath);
+		const privateKeyPath = path.resolve(getUserHome(),keypath);
 		if(fs.existsSync(privateKeyPath)){
 			return this.connect({host : host,username : user, privateKey : fs.readFileSync(privateKeyPath), port : 22});
 		}
@@ -231,16 +230,16 @@ exports.SSHConnection.prototype.connectWithPassword = function(host,user){
 };
 
 exports.SSHConnection.prototype.sftp = function(){
-	var defered = When.defer();
-	this.connection.sftp(function(err,sftp){
-		if(err){
-			defered.reject(err);
-		}
-		else{
-			defered.resolve(new SFTP(sftp));
-		}
-	});
-	return defered.promise;
+	return new Promise(function(resolve,reject){
+		this.connection.sftp(function(err,sftp){
+			if(err){
+				reject(err);
+			}
+			else{
+				resolve(new SFTP(sftp));
+			}
+		});
+	}.bind(this));
 };
 
 exports.SSHConnection.prototype.end = function(){
@@ -252,68 +251,68 @@ function SFTP(sftpObject){
 };
 
 SFTP.prototype.fastGet = function(remotePath,localPath,options){
-	var defered = When.defer();
-	this.sftp.fastGet(remotePath,localPath,options,function(err){
-		if(err){
-			defered.reject(err);
-		}
-		else{
-			defered.resolve(true);
-		}
-	});
-	return defered.promise;
+	return new Promise(function(resolve,reject){
+		this.sftp.fastGet(remotePath,localPath,options,function(err){
+			if(err){
+				reject(err);
+			}
+			else{
+				resolve(true);
+			}
+		});
+	}.bind(this));
 };
 
 SFTP.prototype.fastPut = function(localPath,remotePath,options){
-	var defered = When.defer();
-	this.sftp.fastPut(localPath,remotePath,options,function(err){
-		if(err){
-			defered.reject(err);
-		}
-		else{
-			defered.resolve(true);
-		}
-	});
-	return defered.promise;
+	return new Promise(function(resolve,reject){
+		this.sftp.fastPut(localPath,remotePath,options,function(err){
+			if(err){
+				reject(err);
+			}
+			else{
+				resolve(true);
+			}
+		});
+	}.bind(this));
 };
 
 SFTP.prototype.open = function(filename,mode){
-	var defered = When.defer();
-	this.sftp.open(filename,mode,function(err,handle){
-		if(err){
-			defered.reject(err);
-		}
-		else{
-			defered.resolve(handle);
-		}
-	});
-	return defered.promise;
+	return new Promise(function(resolve,reject){
+		this.sftp.open(filename,mode,function(err,handle){
+			if(err){
+				reject(err);
+			}
+			else{
+				resolve(handle);
+			}
+		});
+	}.bind(this));
 };
 
 SFTP.prototype.close = function(handle){
-	var defered = When.defer();
-	this.sftp.close(handle,function(err){
-		if(err){
-			defered.reject(err);
-		}
-		else{
-			defered.resolve(true);
-		}
-	});
-	return defered.promise;
+	return new Promise(function(resolve,reject){
+		this.sftp.close(handle,function(err){
+			if(err){
+				reject(err);
+			}
+			else{
+				resolve(true);
+			}
+		});
+	}.bind(this));
 };
 
 SFTP.prototype.fchmod = function(handle,mod){
-	var defered = When.defer();
-	this.sftp.fchmod(handle,mod,function(err){
-		if(err){
-			defered.reject(err);
-		}
-		else{
-			defered.resolve(true);
-		}
-	});
-	return defered.promise;
+	return new Promise(function(resolve,reject){
+		this.sftp.fchmod(handle,mod,function(err){
+			if(err){
+				reject(err);
+			}
+			else{
+				resolve(true);
+			}
+		});
+	}.bind(this));
 };
 
 SFTP.prototype.chmod = function(filename,mod){

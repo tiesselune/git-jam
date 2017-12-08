@@ -1,15 +1,14 @@
-var When = require('when');
-var constants = require('./constants.json')
-var crypto = require('crypto');
-var fs = require('fs');
-var gitUtils = require('./gitUtils.js');
-var path = require('path');
+const constants = require('./constants.json')
+const crypto = require('crypto');
+const fs = require('fs');
+const gitUtils = require('./gitUtils.js');
+const path = require('path');
 
 exports.isJamData = function(data){
 	if(!(data instanceof Buffer) || data.length >= 75 || data.length < 52){
 		return false;
 	}
-	var string = new Buffer(data).toString();
+	const string = new Buffer(data).toString();
 	if(string.slice(0,12) != constants.JamCookie && string.slice(0,12) != constants.FatCookie){
 		return false;
 	}
@@ -18,7 +17,7 @@ exports.isJamData = function(data){
 
 exports.isJamPath = function(path){
 	if(typeof path == 'string'){
-		var data = fs.readFileSync(path);
+		const data = fs.readFileSync(path);
 		return exports.isJamData(data);
 	}
 	else{
@@ -37,7 +36,7 @@ exports.isJam = function(arg){
 }
 
 exports.mightBeJam = function(path){
-	var size = fs.statSync(path).size;
+	const size = fs.statSync(path).size;
 	return size == 52 || size == 53 || size == 54 || size == 74;
 };
 
@@ -46,7 +45,7 @@ exports.getDigestFromJamData = function(data){
 		return "";
 	}
 	if(exports.isJam(data)){
-		var string = new Buffer(data).toString();
+		const string = new Buffer(data).toString();
 		return string.slice(12,52);
 	}
 	return "";
@@ -56,7 +55,7 @@ exports.getDigestFromJamPath = function(path){
 	if(typeof path != 'string'){
 		return "";
 	}
-	var data = fs.readFileSync(path);
+	const data = fs.readFileSync(path);
 	return exports.getDigestFromJamData(data);
 };
 
@@ -73,23 +72,23 @@ exports.getDigestFromJam = function(arg){
 exports.isAlreadyMissing = function(digest){
 	return gitUtils.getJamPath()
 	.then(function(jamPath){
-		var missingJamPath = path.join(jamPath,constants.MissingJam)
+		const missingJamPath = path.join(jamPath,constants.MissingJam)
 		if(!fs.existsSync(missingJamPath)){
 			return false;
 		}
-		var missingJam = fs.readFileSync(missingJamPath,'utf8');
-		var missingFiles = missingJam.split('\n');
+		const missingJam = fs.readFileSync(missingJamPath,'utf8');
+		const missingFiles = missingJam.split('\n');
 		return missingFiles.indexOf(digest) != -1;
 	});
 }
 
 exports.generateJam = function(data){
-	var digest = sha1(data);
+	const digest = sha1(data);
 	return constants.JamCookie + digest;
 };
 
 exports.sha1 = function(chunk){
-	var shasum = crypto.createHash('sha1');
+	let shasum = crypto.createHash('sha1');
 	shasum.update(chunk);
 	return shasum.digest('hex');
 };
