@@ -7,7 +7,7 @@ exports.InteractiveConfiguration = function(){
     return gitUtils.jamConfig("backend")
     .then(function(backendName){
         if(backendName){
-            var backend = require("./Backends/" + backendName + ".js");
+            const backend = require("./Backends/" + backendName + ".js");
             if(backend && backend.ConfigurationPrompts && backend.PushFiles && backend.PullFiles){
                 console.log("Backend is configured. Configuring backend options...");
                 return BackendSpecificPrompts(backend.ConfigurationPrompts,configProperties,true);
@@ -50,8 +50,8 @@ exports.GetConfigWithPrompt = function(key,backend){
             if(backend){
                 for(i=0;i<backend.ConfigurationPrompts.length;i++){
                     const element = backend.ConfigurationPrompts[i];
-                    const path = element.Category+ "." + element.Name;
-                    if(key == path){
+                    const pptpath = element.Category+ "." + element.Name;
+                    if(key == pptpath){
                         prompt = element;
                         break;
                     }
@@ -209,16 +209,15 @@ function singlePrompt(promptObject,propertiesArray,checkExistingValue){
 }
 
 function Ask(question){
-    var promise = new Promise(function(resolve,reject){
+    return new Promise(function(resolve,reject){
         process.stdin.resume();
-        var r = readline.createInterface({input: process.stdin,output: process.stdout});
+        let r = readline.createInterface({input: process.stdin,output: process.stdout});
         r.question(question + ' ', function(answer) {
             r.close();
             process.stdin.pause();
             resolve(answer);
         });
     });
-    return promise;
 }
 
 function YesNoAsk(question){
@@ -253,7 +252,7 @@ function RangeAsk(question,choices){
     }
     return Ask(questionWithChoices + "\n>")
     .then(function(answer){
-        var number = parseInt(answer,10);
+        const number = parseInt(answer,10);
         if(number && number > 0 && number <= choices.length){
             return number - 1;
         }

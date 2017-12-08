@@ -1,20 +1,20 @@
-var gitUtils = require('./gitUtils.js');
-var jamFile = require('./jamFile.js');
-var path = require('path');
-var fs = require('fs');
-var constants = require('./constants.json');
+const gitUtils = require('./gitUtils.js');
+const jamFile = require('./jamFile.js');
+const path = require('path');
+const fs = require('fs');
+const constants = require('./constants.json');
 
 exports.pull = function(){
 	return Promise.all([gitUtils.jamConfig('backend'),gitUtils.getJamPath()])
 	.then(function(res){
 		const [back,jamPath] = res;
 		const backend = back? back : "sftp";
-		const digests = fs.readFileSync(path.join(jamPath,constants.MissingJam),'utf-8').split('\n');
+		let digests = fs.readFileSync(path.join(jamPath,constants.MissingJam),'utf-8').split('\n');
 		if(digests[digests.length - 1] == ""){
 			digests = digests.slice(0, digests.length - 1);
 		}
 		console.log('Preparing to pull',digests.length,'object(s).');
-		return [require('./Backends/' + backend).PullFiles(jamPath,digests),digests.length,jamPath];
+		return Promise.all([require('./Backends/' + backend).PullFiles(jamPath,digests),digests.length,jamPath]);
 	})
 	.then(function(res){
 		const [failedObjects,numberOfObjects,jamPath] = res;
@@ -34,12 +34,12 @@ exports.push = function(){
 	.then(function(res){
 		const [back,jamPath] = res;
 		const backend = back? back : "sftp";
-		const digests = fs.readFileSync(path.join(jamPath,constants.ToSyncJam),'utf-8').split('\n');
+		let digests = fs.readFileSync(path.join(jamPath,constants.ToSyncJam),'utf-8').split('\n');
 		if(digests[digests.length - 1] == ""){
 			digests = digests.slice(0, digests.length - 1);
 		}
 		console.log('Preparing to push',digests.length,'object(s).');
-		return [require('./Backends/' + backend).PushFiles(jamPath,digests),digests.length,jamPath];
+		return Promise.all([require('./Backends/' + backend).PushFiles(jamPath,digests),digests.length,jamPath]);
 	})
 	.then(function(res){
 		const [failedObjects,numberOfObjects,jamPath] = res;
@@ -59,7 +59,7 @@ exports.restoreFiles = function(){
 	console.log('Restoring jam files...');
 	return gitUtils.lsFiles()
 	.then(function(files){
-		return [gitUtils.filteredFiles(files),gitUtils.getJamPath()];
+		return Promise.all([gitUtils.filteredFiles(files),gitUtils.getJamPath()]);
 	})
 	.then(function(res){
 		const [files,jamPath] = res;

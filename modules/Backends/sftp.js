@@ -1,8 +1,8 @@
-var ssh2 = require('ssh2');
-var gitUtils = require('../gitUtils.js');
-var iConfig = require("../interactive-configuration.js");
-var path = require('path');
-var fs = require('fs');
+const ssh2 = require('ssh2');
+const gitUtils = require('../gitUtils.js');
+const iConfig = require("../interactive-configuration.js");
+const path = require('path');
+const fs = require('fs');
 
 exports.Properties = {
 	DisplayName : "SFTP"
@@ -51,7 +51,7 @@ exports.ConfigurationPrompts = [
 						Prompt : "Enter the path of your private SSH key relative to $HOME",
 						Default : ".ssh/id_rsa",
 						Validate : function(value){
-							var privateKeyPath = path.resolve(getUserHome(),value);
+							const privateKeyPath = path.resolve(getUserHome(),value);
 							return fs.existsSync(privateKeyPath) ? "" : "This file does not exist.";
 						}
 					}
@@ -82,9 +82,10 @@ exports.PushFiles = function(jamPath,digests){
 	const sshConn = new exports.SSHConnection();
 	return sshConn.connectUsingCredentials()
 	.then(function(){
-		return [sshConn.sftp(),iConfig.GetConfigWithPrompt(['sftp.path','sftp.system'],exports)];
+		return Promise.all([sshConn.sftp(),iConfig.GetConfigWithPrompt(['sftp.path','sftp.system'],exports)]);
 	})
-	.spread(function(sftp,configArray){
+	.then(function(res){
+		const [sftp,configArray] = res;
 		const remotePath = configArray[0];
 		const remoteSystem = configArray[1];
 		let pathSeparator = "/";
@@ -125,9 +126,10 @@ exports.PullFiles = function(jamPath,digests){
 	const sshConn = new exports.SSHConnection();
 	return sshConn.connectUsingCredentials()
 	.then(function(){
-		return [sshConn.sftp(),iConfig.GetConfigWithPrompt(['sftp.path','sftp.system'],exports)];
+		return Promise.all([sshConn.sftp(),iConfig.GetConfigWithPrompt(['sftp.path','sftp.system'],exports)]);
 	})
-	.spread(function(sftp,configArray){
+	.then(function(res){
+		const [sftp,configArray] = res;
 		const remotePath = configArray[0];
 		const remoteSystem = configArray[1];
 		let pathSeparator = "/";
@@ -317,9 +319,10 @@ SFTP.prototype.fchmod = function(handle,mod){
 SFTP.prototype.chmod = function(filename,mod){
 	return this.open(filename,'w')
 	.then(function(handle){
-		return [handle,this.fchmod(handle,mod)];
+		return Promise.all([handle,this.fchmod(handle,mod)]);
 	}.bind(this))
-	.spread(function(handle){
+	.then(function(res){
+		const [handle,fmod] = res;
 		return this.close(handle);
 	}.bind(this));
 };

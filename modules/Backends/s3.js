@@ -1,8 +1,8 @@
-var aws = require('aws-sdk');
-var gitUtils = require('../gitUtils.js');
-var iConfig = require("../interactive-configuration.js");
-var path = require('path');
-var fs = require('fs');
+const aws = require('aws-sdk');
+const gitUtils = require('../gitUtils.js');
+const iConfig = require("../interactive-configuration.js");
+const path = require('path');
+const fs = require('fs');
 
 exports.Properties = {
 	DisplayName : "Amazon S3"
@@ -134,9 +134,9 @@ S3.prototype.UploadFile = function(localPath,remotePath){
 	}.bind(this));
 }
 
-S3.prototype.DownloadFile = function(path){
+S3.prototype.DownloadFile = function(filepath){
 	return new Promise(function(resolve,reject){
-		this.bucket.getObject({Key : path},function(err,data){
+		this.bucket.getObject({Key : filepath},function(err,data){
 			if(err){
 				reject(err);
 			}

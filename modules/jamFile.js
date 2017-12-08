@@ -15,9 +15,9 @@ exports.isJamData = function(data){
 	return true;
 };
 
-exports.isJamPath = function(path){
-	if(typeof path == 'string'){
-		const data = fs.readFileSync(path);
+exports.isJamPath = function(pth){
+	if(typeof pth == 'string'){
+		const data = fs.readFileSync(pth);
 		return exports.isJamData(data);
 	}
 	else{
@@ -35,8 +35,8 @@ exports.isJam = function(arg){
 	}
 }
 
-exports.mightBeJam = function(path){
-	const size = fs.statSync(path).size;
+exports.mightBeJam = function(filepath){
+	const size = fs.statSync(filepath).size;
 	return size == 52 || size == 53 || size == 54 || size == 74;
 };
 
@@ -51,11 +51,11 @@ exports.getDigestFromJamData = function(data){
 	return "";
 };
 
-exports.getDigestFromJamPath = function(path){
+exports.getDigestFromJamPath = function(filepath){
 	if(typeof path != 'string'){
 		return "";
 	}
-	const data = fs.readFileSync(path);
+	const data = fs.readFileSync(filepath);
 	return exports.getDigestFromJamData(data);
 };
 

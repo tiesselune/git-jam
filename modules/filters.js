@@ -1,20 +1,20 @@
-var fs = require('fs');
-var path = require('path');
-var gitUtils = require('./gitUtils.js');
-var jamFile = require('./jamFile.js');
-var constants = require('./constants.json');
+const fs = require('fs');
+const path = require('path');
+const gitUtils = require('./gitUtils.js');
+const jamFile = require('./jamFile.js');
+const constants = require('./constants.json');
 
-var BufferStepSize = 10000000;
+const BufferStepSize = 10000000;
 
 exports.jamCleanFilter = function(){
 	return new Promise(function(resolve,reject){
-		var data = new Buffer(BufferStepSize);
-		var blength = 0;
+		let data = new Buffer(BufferStepSize);
+		let blength = 0;
 		process.stdin.resume();
 		process.stdin.on('data',function(chunk){
 			while (blength + chunk.length > data.length)
 			{
-				var nd = new Buffer(data.length + BufferStepSize);
+				let nd = new Buffer(data.length + BufferStepSize);
 				data.copy(nd);
 				data = nd;
 			}
@@ -24,7 +24,7 @@ exports.jamCleanFilter = function(){
 		process.stdin.on('end',function(){
 			data=data.slice(0, blength);
 			if(!jamFile.isJam(data)){
-				var digest = jamFile.sha1(data);
+				const digest = jamFile.sha1(data);
 				gitUtils.getJamPath()
 				.then(function(jamPath){
 					if(!fs.existsSync(path.join(jamPath,digest))){
@@ -44,13 +44,13 @@ exports.jamCleanFilter = function(){
 
 exports.jamSmudgeFilter = function(){
 	return new Promise(function(resolve,reject){
-		var data = new Buffer(BufferStepSize);
-		var blength = 0;
+		let data = new Buffer(BufferStepSize);
+		let blength = 0;
 		process.stdin.resume();
 		process.stdin.on('data',function(chunk){
 			while (blength + chunk.length > data.length)
 			{
-				var nd = new Buffer(data.length + BufferStepSize);
+				let nd = new Buffer(data.length + BufferStepSize);
 				data.copy(nd);
 				data = nd;
 			}
@@ -60,12 +60,12 @@ exports.jamSmudgeFilter = function(){
 		process.stdin.on('end',function(){
 			data=data.slice(0, blength);
 			if(jamFile.isJam(data)){
-	            var digest = jamFile.getDigestFromJam(data);
+	            const digest = jamFile.getDigestFromJam(data);
 				gitUtils.getJamPath()
 				.then(function(jamPath){
-					var objectPath = path.join(jamPath,digest);
+					const objectPath = path.join(jamPath,digest);
 					if(!fs.existsSync(objectPath)){
-						var line = digest + '\n';
+						const line = digest + '\n';
 						jamFile.isAlreadyMissing(digest)
 						.then(function(res){
 							if(!res){
@@ -75,7 +75,7 @@ exports.jamSmudgeFilter = function(){
 						fs.writeSync(1, constants.JamCookie + digest);
 					}
 					else{
-						var file = fs.readFileSync(objectPath);
+						const file = fs.readFileSync(objectPath);
 						fs.writeSync(1, file,0,file.length);
 					}
 				});

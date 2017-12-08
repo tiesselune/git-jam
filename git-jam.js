@@ -72,21 +72,21 @@ function jamFilterClean(){
 function jamPush(){
 	return pullpush.push()
 	.catch(function(err){
-		console.log(err.message);
+		console.log("Pushed failed :", err.message);
 	});
 }
 
 function jamPull(){
 	return pullpush.pull()
 	.catch(function(err){
-		console.log(err.message);
+		console.log("Pull failed :", err.message);
 	});
 }
 
 function jamRestore(){
 	return pullpush.restoreFiles()
 	.catch(function(err){
-		console.log(err.message);
+		console.log("Restore failed :", err.message);
 	});
 }
 
@@ -183,7 +183,7 @@ function jamInit(args){
 		return Promise.all([pullpush.getCheckedOutJamFiles(jamPath),Promise.resolve(jamPath)]);
 	})
 	.then(function(digestsAndPath){
-		const [digets,jamPath] = digestsAndPath;
+		const [digests,jamPath] = digestsAndPath;
 		fs.writeFileSync(path.join(jamPath,constants.MissingJam),digests.join('\n'));
 		fs.writeFileSync(path.join(jamPath,constants.ToSyncJam),'');
 		return Promise.resolve(true);
@@ -201,10 +201,9 @@ function moveAllFiles(src,dest){
 }
 
 const args = process.argv;
-for(let i = 0;i <args.length;i++){
-	if(args[i].indexOf('git-jam') >= 0){
-		break;
-	}
+let index = 0;
+while(index < args.length && args[index].indexOf('git-jam') < 0){
+	index++;
 }
 
-main(args.slice(i + 1));
+main(args.slice(index + 1));
