@@ -19,6 +19,9 @@ exports.InteractiveConfiguration = function(){
         return SetUpJamConfiguration(configProperties);
     })
     .then(function(){
+        return CompressionConfiguration();
+    })
+    .then(function(){
         return HooksConfiguration();
     })
     .then(function(){
@@ -122,6 +125,14 @@ function BackendSpecificPrompts(prompts,propertyObject,checkExistingValues){
         .then(function(){return singlePrompt(prompt,propertyObject,checkExistingValues);});
     });
     return result;
+}
+
+function CompressionConfiguration(){
+    console.log("\n");
+    return YesNoAsk("Would you like to compress jam files on the backend (saves space)?")
+    .then(function(yes){
+        return gitUtils.dotJamConfig("gzip",yes);
+    });
 }
 
 function SetUpJamConfiguration(configProperties){
