@@ -134,7 +134,7 @@ exports.setUpHooks = function(){
 
 function exec(command){
 	return new Promise(function(resolve,reject){
-		childProcess.exec(command,{maxBuffer: 1024 * 1024},function(err,stdout){
+		childProcess.exec(command,{maxBuffer: 64 * 1024 * 1024},function(err,stdout){
 			if(err){
 				reject(new Error(err));
 			}else{
